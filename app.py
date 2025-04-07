@@ -713,7 +713,7 @@ if check_password():
                 st.divider()
                 st.subheader('Perfil')
                 resposta_respeita_escola = st.radio('**O aluno respeita as normas da escola parceira?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_respeita_escola), horizontal=True)
-                resposta_atividades_obrigatorias_ismart = st.radio('**O aluno aproveira as atividades abrigatórias oferecidas pelo Ismart? Qualidade do envolvimento nas atividades (pressupoe participação em 100% das atividades)**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_atividades_obrigatorias_ismart), horizontal=True)
+                resposta_atividades_obrigatorias_ismart = st.radio('**O aluno aproveita as atividades obrigatórias oferecidas pelo Ismart? Qualidade do envolvimento nas atividades (pressupõe participação em 100% das atividades)**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_atividades_obrigatorias_ismart), horizontal=True)
                 resposta_colaboracao = st.radio('**É colaborativo com os amigos? Oferece ajuda?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_colaboracao), horizontal=True)
                 resposta_atividades_nao_obrigatorias_ismart = st.radio('**O aluno aproveita e participa das atividades não obrigatórias do Ismart?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_atividades_nao_obrigatorias_ismart), horizontal=True)
                 resposta_networking = st.radio('**O aluno cultiva relação na escola parceira e em outros contextos que a escola possibilita?**', caixa_networking, index=retornar_indice(lista=caixa_networking,variavel=registro_resposta_networking), horizontal=True)
@@ -1141,3 +1141,4 @@ if check_password():
                 lista_ras = df_insert['RA']
                 lista_ras = lista_ras.to_list()
                 registrar(df_insert, 'registro', 'confirmacao_classificacao_coordenacao', lista_ras) 
+                
