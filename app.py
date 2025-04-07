@@ -99,13 +99,13 @@ if check_password():
                 classificacao = 'Atenção'
                 motivo += 'Saúde'+'; ' 
             # opcional 2° ano - Atenção
-            if ano == 2: 
+            if ano == '2º EM': 
                 if resposta_seguranca_profissional == caixa_nao_sim[0]:
                     classificacao = 'Atenção'
                     motivo += 'Escolha frágil'+'; '
         # opcional 3° ano - Critico OP
         if classificacao == '':
-            if ano == 3:
+            if ano == '3º EM':
                 if resposta_curso_apoiado == caixa_nao_sim[0]:
                     classificacao = 'Crítico OP'
                     motivo += 'Curso não apoiado'+'; ' 
@@ -276,7 +276,6 @@ if check_password():
     ra = None
     bd['apoio_registro'] = bd['apoio_registro'].astype(str)
     bd['apoio_registro_final'] = bd['apoio_registro_final'].astype(str)
-    bd['Ano'] = bd['Ano'].astype(int)
     bd = bd.sort_values(by=['apoio_registro_final','apoio_registro'], ascending = False)
     df['RA'] = df['RA'].astype(int)
     df_login = ler_sheets('login')
@@ -726,21 +725,21 @@ if check_password():
                 resposta_questoes_saude = st.radio('**O aluno apresenta questões de saúde que podem vir a impactar seu desenvolvimento no projeto?**', caixa_fragilidade, index=retornar_indice(lista=caixa_fragilidade,variavel=registro_resposta_questoes_saude))
                 resposta_ideacao_suicida = st.radio('**O aluno apresenta ideação suicida?**', caixa_ideacao_suicida, index=retornar_indice(lista=caixa_ideacao_suicida,variavel=registro_resposta_ideacao_suicida), horizontal=True)
                 #questão apenas para 8 e 1 anos
-                if ano == 8 or ano == 1:
+                if ano == '8º EF' or ano == '1º EM':
                     st.divider()
                     st.subheader('Questão de 8°/1° ano')
                     resposta_adaptacao_projeto = st.radio('**O aluno conseguiu se adaptar bem ao projeto?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_adaptacao_projeto))
                 else:
                     resposta_adaptacao_projeto = '-'
                 #questão apenas para 2 ano
-                if ano == 2:
+                if ano == '2º EM':
                     st.divider()
                     st.subheader('Questão de 2° ano')
                     resposta_seguranca_profissional = st.radio('**O aluno está seguro em seu processo de escolha profissional?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_seguranca_profissional))
                 else: 
                     resposta_seguranca_profissional = '-'
                 #questão apenas para 3 ano
-                if ano == 3:
+                if ano == '3º EM':
                     st.divider()
                     st.subheader('Questões de 3° ano')
                     resposta_curso_apoiado = st.radio('**O aluno escolheu um curso apoiado pelo Ismart?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_curso_apoiado))
@@ -749,7 +748,7 @@ if check_password():
                 else:
                     resposta_curso_apoiado = '-'
                     resposta_nota_condizente = '-'
-                    if ano != 2:
+                    if ano != '2º EM':
                         resposta_seguranca_profissional = '-'
 
                 #Botão registrar
@@ -1141,4 +1140,3 @@ if check_password():
                 lista_ras = df_insert['RA']
                 lista_ras = lista_ras.to_list()
                 registrar(df_insert, 'registro', 'confirmacao_classificacao_coordenacao', lista_ras) 
-                
