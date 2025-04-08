@@ -403,30 +403,46 @@ if check_password():
         quimica = bd.loc[bd['RA'] == ra, 'Nota Química'].iloc[0]    
         fisica = bd.loc[bd['RA'] == ra, 'Nota Física'].iloc[0]
 
+        try:
+            media_calibrada = df_escola.loc[df_escola['escola'] == escola, 'media_calibrada'].iloc[0]
+        except:
+            st.error('Escola do aluno não encontrada na planilha')
+            st.stop()
+        
         if matematica == '-':
-            matematica = 0
-        if fisica == '-':
-            fisica = 0
+            matematica = media_calibrada
+        if ingles == '-':
+            ingles = media_calibrada
         if portugues == '-':
-            portugues = 0
-        if biologia == '-':
-            biologia = 0
+            portugues = media_calibrada
+        if outras_linguas == '-':
+            outras_linguas = media_calibrada
+        if historia == '-':
+            historia = media_calibrada
+        if espanhol == '-':
+            espanhol = media_calibrada
         if ciencias == '-':
-            ciencias = 0
+            ciencias = media_calibrada
+        if geografia == '-':
+            geografia = media_calibrada
+        if biologia == '-':
+            biologia = media_calibrada
         if quimica == '-':
-            quimica = 0
+            quimica = media_calibrada
+        if fisica == '-':
+            fisica = media_calibrada
         
         qtd_somas_ciencias_naturais = 0
         ciencias_naturais = 0
-        if fisica != '-':
-            ciencias_naturais += fisica
-            qtd_somas_ciencias_naturais += 1
-        if quimica != '-':
-            ciencias_naturais += quimica
-            qtd_somas_ciencias_naturais += 1
-        if biologia != '-':
-            ciencias_naturais += biologia
-            qtd_somas_ciencias_naturais += 1
+
+        ciencias_naturais += fisica
+        qtd_somas_ciencias_naturais += 1
+
+        ciencias_naturais += quimica
+        qtd_somas_ciencias_naturais += 1
+
+        ciencias_naturais += biologia
+        qtd_somas_ciencias_naturais += 1
         try:
             ciencias_naturais = ciencias_naturais/qtd_somas_ciencias_naturais
         except:
@@ -434,15 +450,15 @@ if check_password():
 
         qtd_somas_idiomas = 0
         idiomas = 0
-        if ingles != '-':
-            idiomas += ingles
-            qtd_somas_idiomas += 1
-        if outras_linguas != '-':
-            idiomas += outras_linguas
-            qtd_somas_idiomas += 1
-        if espanhol != '-':
-            idiomas += espanhol
-            qtd_somas_idiomas += 1
+  
+        idiomas += ingles
+        qtd_somas_idiomas += 1
+     
+        idiomas += outras_linguas
+        qtd_somas_idiomas += 1
+      
+        idiomas += espanhol
+        qtd_somas_idiomas += 1
         
         try:
             idiomas = idiomas/qtd_somas_idiomas
@@ -451,23 +467,17 @@ if check_password():
 
         qtd_somas_humanas = 0
         humanas = 0
-        if geografia != '-':
-            humanas += geografia
-            qtd_somas_humanas += 1
-        if historia != '-':
-            humanas += historia
-            qtd_somas_humanas += 1
+
+        humanas += geografia
+        qtd_somas_humanas += 1
+      
+        humanas += historia
+        qtd_somas_humanas += 1
 
         try:
             humanas = humanas/qtd_somas_humanas
         except:
             humanas = 0
-
-        try:
-            media_calibrada = df_escola.loc[df_escola['escola'] == escola, 'media_calibrada'].iloc[0]
-        except:
-            st.error('Escola do aluno não encontrada na planilha')
-            st.stop()
         
         #extras
         orientadora = bd.loc[bd['RA'] == ra, 'Orientadora'].iloc[0]
