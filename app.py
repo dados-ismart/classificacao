@@ -411,73 +411,66 @@ if check_password():
         
         if matematica == '-':
             matematica = media_calibrada
-        if ingles == '-':
-            ingles = 0
         if portugues == '-':
             portugues = media_calibrada
         if outras_linguas == '-':
             outras_linguas = 0
         if historia == '-':
             historia = media_calibrada
-        if espanhol == '-':
-            espanhol = 0
         if ciencias == '-':
             ciencias = media_calibrada
         if geografia == '-':
             geografia = media_calibrada
-        if biologia == '-':
-            biologia = 0
-        if quimica == '-':
-            quimica = 0
-        if fisica == '-':
-            fisica = 0
+
         
         qtd_somas_ciencias_naturais = 0
         ciencias_naturais = 0
 
-        ciencias_naturais += fisica
-        qtd_somas_ciencias_naturais += 1
+        if fisica != '-':
+            ciencias_naturais += fisica
+            qtd_somas_ciencias_naturais += 1
+        if quimica != '-':
+            ciencias_naturais += quimica
+            qtd_somas_ciencias_naturais += 1
+        if biologia != '-':
+            ciencias_naturais += biologia
+            qtd_somas_ciencias_naturais += 1
 
-        ciencias_naturais += quimica
-        qtd_somas_ciencias_naturais += 1
-
-        ciencias_naturais += biologia
-        qtd_somas_ciencias_naturais += 1
         try:
             ciencias_naturais = ciencias_naturais/qtd_somas_ciencias_naturais
         except:
-            ciencias_naturais = 0
-
+            ciencias_naturais = media_calibrada
+        
         qtd_somas_idiomas = 0
         idiomas = 0
-  
-        idiomas += ingles
-        qtd_somas_idiomas += 1
-     
-        idiomas += outras_linguas
-        qtd_somas_idiomas += 1
-      
-        idiomas += espanhol
-        qtd_somas_idiomas += 1
+        if ingles != '-':
+            idiomas += ingles
+            qtd_somas_idiomas += 1
+        if outras_linguas != '-':
+            idiomas += outras_linguas
+            qtd_somas_idiomas += 1
+        if espanhol != '-':
+            idiomas += espanhol
+            qtd_somas_idiomas += 1
         
         try:
             idiomas = idiomas/qtd_somas_idiomas
         except:
-            idiomas = 0
+            idiomas = media_calibrada
 
         qtd_somas_humanas = 0
         humanas = 0
-
-        humanas += geografia
-        qtd_somas_humanas += 1
-      
-        humanas += historia
-        qtd_somas_humanas += 1
+        if geografia != '-':
+            humanas += geografia
+            qtd_somas_humanas += 1
+        if historia != '-':
+            humanas += historia
+            qtd_somas_humanas += 1
 
         try:
             humanas = humanas/qtd_somas_humanas
         except:
-            humanas = 0
+            humanas = media_calibrada
         
         #extras
         orientadora = bd.loc[bd['RA'] == ra, 'Orientadora'].iloc[0]
