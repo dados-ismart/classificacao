@@ -413,8 +413,6 @@ if check_password():
             matematica = media_calibrada
         if portugues == '-':
             portugues = media_calibrada
-        if outras_linguas == '-':
-            outras_linguas = 0
         if historia == '-':
             historia = media_calibrada
         if ciencias == '-':
