@@ -412,25 +412,25 @@ if check_password():
         if matematica == '-':
             matematica = media_calibrada
         if ingles == '-':
-            ingles = media_calibrada
+            ingles = 0
         if portugues == '-':
             portugues = media_calibrada
         if outras_linguas == '-':
-            outras_linguas = media_calibrada
+            outras_linguas = 0
         if historia == '-':
             historia = media_calibrada
         if espanhol == '-':
-            espanhol = media_calibrada
+            espanhol = 0
         if ciencias == '-':
             ciencias = media_calibrada
         if geografia == '-':
             geografia = media_calibrada
         if biologia == '-':
-            biologia = media_calibrada
+            biologia = 0
         if quimica == '-':
-            quimica = media_calibrada
+            quimica = 0
         if fisica == '-':
-            fisica = media_calibrada
+            fisica = 0
         
         qtd_somas_ciencias_naturais = 0
         ciencias_naturais = 0
