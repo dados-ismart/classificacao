@@ -231,40 +231,39 @@ if check_password():
             return None
         
     def registrar(df_insert, aba, coluna_apoio, ra):
-        df = ler_sheets(aba)
-        #Limpar linhas repetidas
-        if type(ra) == list:
-            for i in ra:
-                ra_referencia = i
-                df = df[df['RA'] != i]
-        else:
-            df = df[df['RA'] != ra]
-
         for a in range(1, 4):
+            df = ler_sheets(aba)
+            #Limpar linhas repetidas
+            if type(ra) == list:
+                for i in ra:
+                    ra_referencia = i
+                    df = df[df['RA'] != i]
+            else:
+                df = df[df['RA'] != ra]
+
             try:
                 updared_df = pd.concat([df, df_insert], ignore_index=True)
                 conn.update(worksheet="registro", data=updared_df)
             except:
                 continue
             #verificar
+            sleep(2)
             df = ler_sheets(aba)
             if type(ra) != list:
                 if not df.query(f'RA == {ra} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
-                    sleep(2)
                     break
                 else:
                     st.warning('Erro')
-                    sleep(1)
+                    sleep(2)
                     continue
             else:
                 if not df.query(f'RA == {ra_referencia} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
-                    sleep(2)
                     break
                 else:
                     st.warning('Erro')
-                    sleep(1)
+                    sleep(2)
                     continue
         st.rerun()
 
@@ -953,7 +952,7 @@ if check_password():
                                                         'classificacao_final': classificar(media_calibrada, portugues, matematica, humanas, idiomas, biologia, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[0],
                                                         'motivo_final': classificar(media_calibrada, portugues, matematica, humanas, idiomas, biologia, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[1]
                                                         }])
-                                    registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)   
+                                    registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)    
                                 elif resposta_confirmar_classificacao == 'Não':
                                     df_insert = pd.DataFrame([{
                                                         'RA': ra, 
