@@ -134,6 +134,7 @@ if check_password():
 
         #Contagem das matérias
         for i in materias:
+            return i, media_calibrada - 1
             if i < (media_calibrada - 1):
                 critico_escolar += 1
             elif (media_calibrada - 1) <= i and i < media_calibrada:
