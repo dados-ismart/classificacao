@@ -479,12 +479,7 @@ if check_password():
         col1, col2 = st.columns([2, 5])
         col1.metric("RA", ra, border=True)
         col2.metric("Nome", nome, border=True)
-        st.divider()
-        #Segmento
-        st.header('Segmento')
-        col1, col2 = st.columns(2)
-        col1.metric("Orientadora", orientadora, border=True)
-        col2.metric("Segmento", segmento, border=True)
+        st.metric("Segmento", segmento, border=True)
         # st.divider()
         # st.header('Local')
         # col1, col2 = st.columns(2)
