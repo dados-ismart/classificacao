@@ -278,7 +278,7 @@ if check_password():
     bd['apoio_registro'] = bd['apoio_registro'].astype(str)
     bd['apoio_registro_final'] = bd['apoio_registro_final'].astype(str)
     bd = bd.sort_values(by=['apoio_registro_final','apoio_registro'], ascending = False)
-    df['RA'] = df['RA'].astype(int)
+    #df['RA'] = df['RA'].astype(int)
     df_login = ler_sheets('login')
     df_escola = ler_sheets('media_calibrada')
 
