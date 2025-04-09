@@ -402,7 +402,6 @@ if check_password():
         outras_linguas = bd.loc[bd['RA'] == ra, 'Nota Francês/Alemão e Outros'].iloc[0]
         historia = bd.loc[bd['RA'] == ra, 'Nota História'].iloc[0]
         espanhol = bd.loc[bd['RA'] == ra, 'Nota Espanhol'].iloc[0]
-        ciencias = bd.loc[bd['RA'] == ra, 'Nota Ciências'].iloc[0]
         geografia = bd.loc[bd['RA'] == ra, 'Nota Geografia'].iloc[0]
         biologia = bd.loc[bd['RA'] == ra, 'Nota Biologia'].iloc[0]
         quimica = bd.loc[bd['RA'] == ra, 'Nota Química'].iloc[0]    
@@ -418,10 +417,6 @@ if check_password():
             matematica = media_calibrada
         if portugues == '-':
             portugues = media_calibrada
-        if ciencias == '-':
-            ciencias = media_calibrada
-
-
         
         qtd_somas_ciencias_naturais = 0
         ciencias_naturais = 0
