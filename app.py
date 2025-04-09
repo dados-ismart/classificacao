@@ -131,7 +131,7 @@ if check_password():
         mediano_escolar = 0
         destaque_escolar = 0
         materias = [portugues, matematica, humanas, idiomas, biologia]
-
+        return materias, media_calibrada
         #Contagem das matérias
         for i in materias:
             if i < (media_calibrada - 1):
