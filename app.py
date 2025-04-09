@@ -254,13 +254,14 @@ if check_password():
         sleep(2)
         for a in range(1, 4):
             df = ler_sheets(aba)
+            sleep(1)
             if type(ra) != list:
                 if not df.query(f'RA == {ra} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
                     break
                 else:
                     st.warning('Erro')
-                    sleep(2)
+                    sleep(1)
                     continue
             else:
                 if not df.query(f'RA == {ra_referencia} and {coluna_apoio} == {coluna_apoio}').empty:
@@ -268,7 +269,7 @@ if check_password():
                     break
                 else:
                     st.warning('Erro')
-                    sleep(2)
+                    sleep(1)
                     continue
         st.rerun()
 
