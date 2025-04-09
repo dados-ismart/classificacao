@@ -231,22 +231,26 @@ if check_password():
             return None
         
     def registrar(df_insert, aba, coluna_apoio, ra):
-        for a in range(1, 4):
-            df = ler_sheets(aba)
-            #Limpar linhas repetidas
-            if type(ra) == list:
-                for i in ra:
-                    ra_referencia = i
-                    df = df[df['RA'] != i]
-            else:
-                df = df[df['RA'] != ra]
+        df = ler_sheets(aba)
+        #Limpar linhas repetidas
+        if type(ra) == list:
+            for i in ra:
+                ra_referencia = i
+                df = df[df['RA'] != i]
+        else:
+            df = df[df['RA'] != ra]
 
+        #REGISTRAR
+        for a in range(1, 4):
             try:
                 updared_df = pd.concat([df, df_insert], ignore_index=True)
                 conn.update(worksheet="registro", data=updared_df)
             except:
+                sleep(2)
                 continue
-            #verificar
+
+        #VERIFICAR
+        for a in range(1, 4):
             sleep(2)
             df = ler_sheets(aba)
             if type(ra) != list:
