@@ -1054,7 +1054,7 @@ if check_password():
                 disabled=colunas_nao_editaveis,
                 hide_index=True,
             )
-            submit_button = st.form_submit_button(label='SALVAR')
+            submit_button = st.form_submit_button(label='REGISTRAR')
             
         if submit_button:
             #filtrar do df_tabela_editavel aqueles com confirmar 
