@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
@@ -240,34 +241,31 @@ if check_password():
         else:
             df = df[df['RA'] != ra]
 
-        #REGISTRAR
         for a in range(1, 4):
             try:
                 updared_df = pd.concat([df, df_insert], ignore_index=True)
                 conn.update(worksheet="registro", data=updared_df)
             except:
-                sleep(2)
                 continue
-
-        #VERIFICAR
-        for a in range(1, 4):
-            sleep(2)
+            #verificar
             df = ler_sheets(aba)
             if type(ra) != list:
                 if not df.query(f'RA == {ra} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
+                    sleep(2)
                     break
                 else:
                     st.warning('Erro')
-                    sleep(2)
+                    sleep(1)
                     continue
             else:
                 if not df.query(f'RA == {ra_referencia} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
+                    sleep(2)
                     break
                 else:
                     st.warning('Erro')
-                    sleep(2)
+                    sleep(1)
                     continue
         st.rerun()
 
