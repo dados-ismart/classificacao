@@ -406,6 +406,8 @@ if check_password():
         biologia = bd.loc[bd['RA'] == ra, 'Nota Biologia'].iloc[0]
         quimica = bd.loc[bd['RA'] == ra, 'Nota Química'].iloc[0]    
         fisica = bd.loc[bd['RA'] == ra, 'Nota Física'].iloc[0]
+        enem = bd.loc[bd['RA'] == ra, 'Nota ENEM'].iloc[0]
+        pu = bd.loc[bd['RA'] == ra, 'Nota PU'].iloc[0]
 
         try:
             media_calibrada = df_escola.loc[df_escola['escola'] == escola, 'media_calibrada'].iloc[0]
@@ -542,9 +544,16 @@ if check_password():
             except:
                 col2.metric('História', historia, border=True)
 
-        # col1, col2 = st.columns(2)
-        # col1.metric("Período", f'{periodo:.2f}, border=True)
-        # col2.metric("Nomenclatura", f'{nomenclatura:.2f}, border=True)
+        st.divider()
+        col1, col2 = st.columns(2)
+        try:
+            col1.metric("ENEM", f'{enem:.2f}', border=True)
+        except:
+            col1.metric("ENEM", f"{enem}", border=True)
+        try:
+            col2.metric("PU", f'{pu:.2f}', border=True)
+        except:
+            col2.metric("PU", f"{pu}", border=True)
 
 
         #formulario
