@@ -544,7 +544,6 @@ if check_password():
             except:
                 col2.metric('História', historia, border=True)
 
-        st.divider()
         col1, col2 = st.columns(2)
         try:
             col1.metric("ENEM", f'{enem:.2f}', border=True)
