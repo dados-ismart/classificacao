@@ -418,12 +418,9 @@ if check_password():
             matematica = media_calibrada
         if portugues == '-':
             portugues = media_calibrada
-        if historia == '-':
-            historia = media_calibrada
         if ciencias == '-':
             ciencias = media_calibrada
-        if geografia == '-':
-            geografia = media_calibrada
+
 
         
         qtd_somas_ciencias_naturais = 0
