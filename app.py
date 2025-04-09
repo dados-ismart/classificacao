@@ -518,9 +518,18 @@ if check_password():
         with st.expander("Notas detalhadas"):
             st.subheader('Ciências Naturais')
             col1, col2, col3 = st.columns(3)
-            col1.metric('Biologia', f'{biologia:.2f}', border=True)
-            col2.metric('Química', f'{quimica:.2f}', border=True)
-            col3.metric('Física', f'{fisica:.2f}', border=True)
+            try:
+                col1.metric('Biologia', f'{biologia:.2f}', border=True)
+            except:
+                col1.metric('Biologia', biologia, border=True)
+            try:
+                col2.metric('Química', f'{quimica:.2f}', border=True)
+            except:
+                col2.metric('Química', quimica, border=True)
+            try:
+                col3.metric('Física', f'{fisica:.2f}', border=True)
+            except:
+                col3.metric('Física', fisica, border=True)
             st.subheader('Idiomas')
             col1, col2, col3 = st.columns(3)
             try:
