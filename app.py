@@ -890,7 +890,7 @@ if check_password():
                         resposta_novo_motivo_classificacao_orientadora = df.loc[df['RA'] == ra, 'novo_motivo_classificacao_orientadora'].iloc[0]
                         resposta_nova_justificativa_classificacao_orientadora = df.loc[df['RA'] == ra, 'nova_justificativa_classificacao_orientadora'].iloc[0]
                         
-                        if st.session_state['classificacao_atual'] == 'Crítico':
+                        if st.session_state['classificacao_atual'] == 'Crítico' or st.session_state['classificacao_atual'] == 'Crítico OP':
                             resposta_reversao = st.radio('**Reversão**', caixa_reversao, index=retornar_indice(lista=caixa_reversao,variavel=reversao), horizontal=True)
                             resposta_descricao_caso = st.text_input(placeholder='Descrição do caso', label='Descrição do caso')
                             resposta_plano_intervencao = st.text_input(placeholder='Plano de intervenção', label='Plano de intervenção')
