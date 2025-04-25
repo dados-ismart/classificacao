@@ -1,4 +1,3 @@
-
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
@@ -140,8 +139,9 @@ if check_password():
                 atencao_escolar += 1
             elif media_calibrada <= i and i < (media_calibrada + 2):
                 mediano_escolar += 1
-            elif i > (media_calibrada + 2):
+            elif i >= (media_calibrada + 2):
                 destaque_escolar += 1
+
         
         #status_nota
         if critico_escolar > 0 or atencao_escolar > 2:
@@ -154,7 +154,7 @@ if check_password():
             status_nota_escolar = 3
         elif destaque_escolar == 5:
             status_nota_escolar = 4
-                
+      
         #Pontuacao academica
         pontuacao_perfil = 0
         pontuacao_perfil += pontuar(resposta_respeita_escola , caixa_nunca_eventualmente_sempre)
