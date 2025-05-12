@@ -693,10 +693,10 @@ if ra_nome is not None:
                                 registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)
 
 elif not ra_nome and df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cargo"].iloc[0] == "coordenação":
-    df_coord = df.query('confirmacao_classificacao_coordenacao != "Sim" and confirmacao_classificacao_coordenacao != "Não" and confirmacao_classificacao_orientadora == "Sim" or confirmacao_classificacao_orientadora == "Não"')
+    df_coord = df.query('confirmacao_classificacao_orientadora == "Sim" or confirmacao_classificacao_orientadora == "Não"')
     df_coord = df_coord[df_coord['RA'].isin(bd_segmentado['RA'])]
 
-    df_tabela_editavel = df_coord
+    df_tabela_editavel = df_coord.query('confirmacao_classificacao_coordenacao != "Sim" and confirmacao_classificacao_coordenacao != "Não"')
     df_tabela_editavel['manter_dados_iguais'] = '-' 
     df_tabela_editavel = df_tabela_editavel[['manter_dados_iguais','RA','nome','classificacao_final','motivo_final',
                                                 'classificacao_automatica','motivo_classificao_automatica','confirmacao_classificacao_orientadora',
