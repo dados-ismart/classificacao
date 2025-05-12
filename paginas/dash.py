@@ -63,7 +63,7 @@ df_completo = df_completo[['RA', 'nome','data_submit','Orientadora', 'Segmento',
                            'confirmacao_classificacao_orientadora','nova_classificacao_orientadora','novo_motivo_classificacao_orientadora',
                            'nova_justificativa_classificacao_orientadora','reversao','descricao_caso','plano_intervencao','tier',
                            'confirmacao_classificacao_coordenacao','justificativa_classificacao_coord','classificacao_final',
-                           'motivo_final','confirmacao_classificacao_final','media_calibrada','Nota Matemática', 'Nota Português', 
+                           'motivo_final','conclusao_classificacao_final','media_calibrada','Nota Matemática', 'Nota Português', 
                            'Nota História', 'Nota Geografia', 'Nota Inglês', 'Nota Francês/Alemão e Outros', 'Nota Espanhol', 'Nota Química', 
                            'Nota Física', 'Nota Biologia', 'Nota ENEM', 'Nota PU']]
 
@@ -80,7 +80,7 @@ df_historico = df_historico[['RA', 'nome','data_submit','Orientadora', 'Segmento
                            'confirmacao_classificacao_orientadora','nova_classificacao_orientadora','novo_motivo_classificacao_orientadora',
                            'nova_justificativa_classificacao_orientadora','reversao','descricao_caso','plano_intervencao','tier',
                            'confirmacao_classificacao_coordenacao','justificativa_classificacao_coord','classificacao_final',
-                           'motivo_final','confirmacao_classificacao_final','media_calibrada','Nota Matemática', 'Nota Português', 
+                           'motivo_final','conclusao_classificacao_final','media_calibrada','Nota Matemática', 'Nota Português', 
                            'Nota História', 'Nota Geografia', 'Nota Inglês', 'Nota Francês/Alemão e Outros', 'Nota Espanhol', 'Nota Química', 
                            'Nota Física', 'Nota Biologia', 'Nota ENEM', 'Nota PU']]
 
@@ -232,7 +232,7 @@ st.dataframe(df_completo, hide_index=True,column_config={
                     "Coordenação Confirmou Classificação da Orientadora?",
                     required=False
                 ),
-                "confirmacao_classificacao_final": st.column_config.TextColumn(
+                "conclusao_classificacao_final": st.column_config.TextColumn(
                     "Classificação Final do Mês Concluida?",
                     required=False
                 ),
@@ -443,7 +443,7 @@ st.dataframe(df_historico, hide_index=True,column_config={
                     "Coordenação Confirmou Classificação da Orientadora?",
                     required=False
                 ),
-                "confirmacao_classificacao_final": st.column_config.TextColumn(
+                "conclusao_classificacao_final": st.column_config.TextColumn(
                     "Classificação Final do Mês Concluida?",
                     required=False
                 ),
