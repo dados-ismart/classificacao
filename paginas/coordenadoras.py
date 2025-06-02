@@ -375,7 +375,7 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 options=['Sim', 'Não', '-'],
                 required=True
             ),
-            "justificativa_classificacao_coord": st.column_config.TextColumn(
+            "justificativa_classificacao_coord": st.column_config.Column(
                 "Justificativa da Coordenadora",
                 required=False
             ),
@@ -431,15 +431,15 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 options=["Alta", "Média", "Baixa", '-'],
                 required=False
             ),
-            "descricao_caso": st.column_config.TextColumn(
+            "descricao_caso": st.column_config.Column(
                 "Descrição do Caso",
                 required=False
             ),
-            "plano_intervencao": st.column_config.TextColumn(
+            "plano_intervencao": st.column_config.Column(
                 "Plano de Intervenção",
                 required=False
             ),
-            "tier": st.column_config.TextColumn(
+            "tier": st.column_config.Column(
                 "Tier",
                 help='2c; 2i; 3c; 3i; 4',
                 required=False
