@@ -1,23 +1,46 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import datetime
 from time import sleep
-import pytz
 
-fuso_horario = pytz.timezone('America/Sao_Paulo')
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def ler_sheets(pagina):
-    conn = st.connection("gsheets", type=GSheetsConnection)
+@st.cache_resource(ttl=7200)
+def conn():
     for i in range(0, 10):
         try:
-            df = conn.read(worksheet=pagina, ttl=1)
+            return st.connection("gsheets", type=GSheetsConnection)
+        except:
+            sleep(3)
+            pass
+    st.error('Erro ao conectar com o sheets, tente novamente')
+    if st.button('Tentar novamente'):
+        st.rerun()
+    st.stop()
+conn = conn()
+
+def ler_sheets(pagina, ttl=1):
+    for i in range(0, 10):
+        try:
+            df = conn.read(worksheet=pagina, ttl=ttl)
+            return df
+        except:
+            sleep(3)
+            conn = st.connection("gsheets", type=GSheetsConnection)
+            pass
+    st.error('Erro ao conectar com o sheets')
+    if st.button('Tentar novamente'):
+        st.rerun()
+    st.stop()
+
+@st.cache_data(show_spinner=False, ttl=7200) 
+def ler_sheets_cache(pagina):
+    for i in range(0, 10):
+        try:
+            df = conn.read(worksheet=pagina)
             return df
         except:
             sleep(3)
             pass
-    st.error('Erro ao conectar com o sheets')
+    st.error('Erro na leitura do sheets, tente novamente')
     if st.button('Tentar novamente'):
         st.rerun()
     st.stop()
@@ -233,4 +256,14 @@ def registrar(df_insert, aba, coluna_apoio, ra):
                     sleep(1)
                     continue
     st.rerun()
- 
+
+def retornar_indice(lista, variavel):
+    if variavel == None:
+        return None
+    try:
+        for indice, valor in enumerate(lista):
+            if valor == variavel:
+                return indice
+    except:
+        return None
+
