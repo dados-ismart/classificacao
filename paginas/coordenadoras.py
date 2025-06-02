@@ -396,7 +396,7 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 options=['Destaque', 'Pré-Destaque', 'Mediano', 'Atenção', 'Crítico', 'Crítico OP'],
                 required=False
             ),
-            "motivo_final": st.column_config.TextColumn(
+            "motivo_final": st.column_config.Column(
                 "Motivo Classificação Final",
                 help='Acadêmico; Perfil; Familiar; Saúde; Psicológico; Curso não apoiado; Curso concorrido; Escolha frágil',
                 required=False
