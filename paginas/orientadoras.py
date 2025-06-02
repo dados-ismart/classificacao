@@ -1,140 +1,91 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
-from time import sleep
 import pytz
-from paginas.funcoes import ler_sheets, pontuar, registrar, classificar
+from paginas.funcoes import ler_sheets,ler_sheets_cache, registrar, classificar, retornar_indice
 
 fuso_horario = pytz.timezone('America/Sao_Paulo')
-conn = st.connection("gsheets", type=GSheetsConnection)
+email = st.experimental_user.email 
 
 caixa_classificacao = ['Destaque', 'Pré-Destaque', 'Mediano', 'Atenção', 'Crítico', 'Crítico OP']
 caixa_justificativa_classificacao = ['Acadêmico', 'Perfil', 'Familiar', 'Saúde', 'Psicológico', 'Curso não apoiado', 'Curso concorrido', 'Escolha frágil']
 caixa_tier = ['2c', '2i', '3c', '3i', '4']
 
-#ler planilha   
-def retornar_indice(lista, variavel):
-    if variavel == None:
-        return None
-    try:
-        for indice, valor in enumerate(lista):
-            if valor == variavel:
-                return indice
-    except:
-        return None
-
 #importar e tratar datasets
-df = ler_sheets('registro')
-df['RA'] = df['RA'].astype(int)
-bd = ler_sheets('bd')
+bd = ler_sheets_cache('bd')
 bd = bd.dropna(subset=['RA - NOME'])
 bd['RA'] = bd['RA'].astype(int)
-ra = None
-bd['apoio_registro'] = bd['apoio_registro'].astype(str)
-bd['apoio_registro_final'] = bd['apoio_registro_final'].astype(str)
-bd = bd.sort_values(by=['apoio_registro_final','apoio_registro'], ascending = False)
-df_login = ler_sheets('login')
-df_escola = ler_sheets('media_calibrada')
-df_historico = ler_sheets('historico')
+df = ler_sheets('registro')
+df['RA'] = df['RA'].astype(int)
+df_historico = ler_sheets_cache('historico')
 df_historico['RA'] = df_historico['RA'].astype(int)
+bd = bd.merge(df[['RA', 'confirmacao_classificacao_orientadora','conclusao_classificacao_final']], how='left', on='RA')
+bd = bd.sort_values(by=['conclusao_classificacao_final','confirmacao_classificacao_orientadora'], ascending = False)
+df_login = ler_sheets_cache('login')
+
+orientadora = df_login.loc[df_login['email'] == email, 'login'].iloc[0]
 
 st.title('Formulário de Classificação')
-#Seleção do aluno
-if df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cargo"].iloc[0] == "coordenação":
-    bd_segmentado = bd.query("apoio_registro_final != 'Sim'")
-    bd_segmentado = bd_segmentado.query("apoio_registro == 'Sim' or apoio_registro == 'Não'")
-    cidade_login = df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cidade"].iloc[0]
-    bd_segmentado = bd_segmentado.query(f'Cidade == "{cidade_login}"')
-    # filtros bd
-    col1, col2, col3, col4 = st.columns(4)
-    # Aplique os filtros
-    valores_segmento = col1.multiselect("Filtro de Segmento", bd_segmentado['Segmento'].unique())
-    if valores_segmento:
-        bd_segmentado = bd_segmentado.query(f"Segmento in {valores_segmento}")
-    valores_escola = col2.multiselect("Filtro de Escola", bd_segmentado['Escola'].unique())
-    if valores_escola:
-        bd_segmentado = bd_segmentado.query(f"Escola in {valores_escola}")
-    valores_ano = col3.multiselect("Filtro de Ano", bd_segmentado['Ano'].unique())
-    if valores_ano:
-        bd_segmentado = bd_segmentado.query(f"Ano in {valores_ano}")
-    selecao_orientadora = col4.multiselect("Filtro Orientadora", bd_segmentado['Orientadora'].unique())
-    if selecao_orientadora:
-        bd_segmentado = bd_segmentado.query(f"Orientadora in {selecao_orientadora}")
-    st.divider()
-    ra_nome = None
-    # progresso
-    qtd_praca = bd.query(f"Cidade == '{cidade_login}'").shape[0]
-    qtd_registrados_praca = bd.query(f"Cidade == '{cidade_login}'")
-    qtd_registrados_praca = qtd_registrados_praca.query("apoio_registro == 'Não' or apoio_registro == 'Sim'").shape[0]
 
-    qtd_alunos = bd.shape[0]
-    qtd_alunos_registrados = bd.query(f"apoio_registro == 'Não' or apoio_registro == 'Sim'").shape[0]
+# filtros
+bd_segmentado = bd.query(f"Orientadora == '{orientadora}'")
+bd_segmentado = bd_segmentado.query("confirmacao_classificacao_orientadora != 'Não' and confirmacao_classificacao_orientadora != 'Sim'")
 
+col1, col2, col3 = st.columns(3)
+# Aplique os filtros
+valores_segmento = col1.multiselect("Filtro de Segmento", bd_segmentado['Segmento'].unique())
+if valores_segmento:
+    bd_segmentado = bd_segmentado.query(f"Segmento in {valores_segmento}")
+valores_escola = col2.multiselect("Filtro de Escola", bd_segmentado['Escola'].unique())
+if valores_escola:
+    bd_segmentado = bd_segmentado.query(f"Escola in {valores_escola}")
+valores_ano = col3.multiselect("Filtro de Ano", bd_segmentado['Ano'].unique())
+if valores_ano:
+    bd_segmentado = bd_segmentado.query(f"Ano in {valores_ano}")
+st.divider()
+
+#Seleção dos alunos
+ra_nome_bd = bd_segmentado['RA - NOME']
+ra_nome = st.selectbox(
+"Seleção dos Alunos",
+ra_nome_bd,
+index=None,
+placeholder="RA")
+if 'ra_nome' not in st.session_state:
+    st.session_state['ra_nome'] = ra_nome
+if st.session_state['ra_nome'] != ra_nome:
     try:
-        st.progress(qtd_alunos_registrados/qtd_alunos, f'Status de Preenchimento das Orientadoras de ***Todas as Praças***: **{qtd_alunos_registrados}/{qtd_alunos}**')
-        st.progress(qtd_registrados_praca/qtd_praca, f'Status de Preenchimento das Orientadoras da Praça ***{cidade_login}***: **{qtd_registrados_praca}/{qtd_praca}**')
-    except ZeroDivisionError:
-        st.error('Zero Resultados')
-else:
-    cidade_login = df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cidade"].iloc[0]
-    bd_segmentado = bd.query(f"Orientadora == '{st.session_state["authenticated_username"]}'")
-    bd_segmentado = bd_segmentado.query("apoio_registro != 'Não' and apoio_registro != 'Sim'")
-    # filtros
-    col1, col2, col3 = st.columns(3)
-    # Aplique os filtros
-    valores_segmento = col1.multiselect("Filtro de Segmento", bd_segmentado['Segmento'].unique())
-    if valores_segmento:
-        bd_segmentado = bd_segmentado.query(f"Segmento in {valores_segmento}")
-    valores_escola = col2.multiselect("Filtro de Escola", bd_segmentado['Escola'].unique())
-    if valores_escola:
-        bd_segmentado = bd_segmentado.query(f"Escola in {valores_escola}")
-    valores_ano = col3.multiselect("Filtro de Ano", bd_segmentado['Ano'].unique())
-    if valores_ano:
-        bd_segmentado = bd_segmentado.query(f"Ano in {valores_ano}")
-    st.divider()
+        del st.session_state['classificacao_atual']
+        del st.session_state['motivo_atual']
+        del st.session_state['confirmacao_alterada']
+    except:
+        pass
+    del st.session_state['ra_nome']
 
-    ra_nome_bd = bd_segmentado['RA - NOME']
-    ra_nome = st.selectbox(
-    "Seleção dos Alunos",
-    ra_nome_bd,
-    index=None,
-    placeholder="RA")
-    if 'ra_nome' not in st.session_state:
-        st.session_state['ra_nome'] = ra_nome
-    if st.session_state['ra_nome'] != ra_nome:
-        try:
-            del st.session_state['classificacao_atual']
-            del st.session_state['motivo_atual']
-            del st.session_state['confirmacao_alterada']
-        except:
-            pass
-        del st.session_state['ra_nome']
+# progresso
+alunos_orientadora_total = bd.query(f"Orientadora == '{orientadora}'")
+alunos_orientadora_total_registrados = alunos_orientadora_total.query("confirmacao_classificacao_orientadora == 'Não' or confirmacao_classificacao_orientadora == 'Sim'")
+try:
+    st.progress(alunos_orientadora_total_registrados.shape[0]/alunos_orientadora_total.shape[0], f'Você registrou: **{alunos_orientadora_total_registrados.shape[0]}/{alunos_orientadora_total.shape[0]}**')
+except ZeroDivisionError:
+    st.error('Zero Resultados')
 
-    # progresso
-    alunos_orientadora_total = bd.query(f"Orientadora == '{st.session_state["authenticated_username"]}'")
-    alunos_orientadora_total_registrados = alunos_orientadora_total.query("apoio_registro == 'Não' or apoio_registro == 'Sim'")
-    try:
-        st.progress(alunos_orientadora_total_registrados.shape[0]/alunos_orientadora_total.shape[0], f'Você registrou: **{alunos_orientadora_total_registrados.shape[0]}/{alunos_orientadora_total.shape[0]}**')
-    except ZeroDivisionError:
-        st.error('Zero Resultados')
-
+#Painel Micro
 if ra_nome is not None:
-    if df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cargo"].iloc[0] != "coordenação":
-        try:
-            st.session_state["ra"] = bd.loc[bd['RA - NOME'] == ra_nome, 'RA'].iloc[0]
-            ra = st.session_state["ra"]
-        except IndexError:
-            st.warning('Aluno não encontrado na base.')
-            st.stop()
+    #Transformação do RA
+    try:
+        st.session_state["ra"] = bd.loc[bd['RA - NOME'] == ra_nome, 'RA'].iloc[0]
+        ra = None
+        ra = st.session_state["ra"]
+    except IndexError:
+        st.warning('Aluno não encontrado na base.')
+        st.stop()
 
-
-    #pessoal
+    #Variaveis e calulo de Materias escolares
     nome = bd.loc[bd['RA'] == ra, 'Nome'].iloc[0]
-    escola = bd.loc[bd['RA'] == ra, 'Escola'].iloc[0]
-    cidade = bd.loc[bd['RA'] == ra, 'Cidade'].iloc[0]
+    segmento = bd.loc[bd['RA'] == ra, 'Segmento'].iloc[0]
+    ano = bd.loc[bd['RA'] == ra, 'Ano'].iloc[0]
 
-    #materias
     matematica = bd.loc[bd['RA'] == ra, 'Nota Matemática'].iloc[0]
     ingles = bd.loc[bd['RA'] == ra, 'Nota Inglês'].iloc[0]
     portugues = bd.loc[bd['RA'] == ra, 'Nota Português'].iloc[0]
@@ -148,9 +99,8 @@ if ra_nome is not None:
     enem = bd.loc[bd['RA'] == ra, 'Nota ENEM'].iloc[0]
     pu = bd.loc[bd['RA'] == ra, 'Nota PU'].iloc[0]
 
-    try:
-        media_calibrada = df_escola.loc[df_escola['escola'] == escola, 'media_calibrada'].iloc[0]
-    except:
+    media_calibrada = bd.loc[bd['RA'] == ra, 'media_calibrada'].iloc[0]
+    if media_calibrada == '#N/D': 
         st.error('Escola do aluno não encontrada na planilha')
         st.stop()
 
@@ -208,25 +158,12 @@ if ra_nome is not None:
     except:
         humanas = media_calibrada
 
-    #extras
-    orientadora = bd.loc[bd['RA'] == ra, 'Orientadora'].iloc[0]
-    segmento = bd.loc[bd['RA'] == ra, 'Segmento'].iloc[0]
-    ano = bd.loc[bd['RA'] == ra, 'Ano'].iloc[0]
-    # periodo = bd.loc[bd['RA'] == ra, 'periodo'].iloc[0]
-    # nomenclatura = bd.loc[bd['RA'] == ra, 'nomenclatura'].iloc[0]
-
-    #Dados pessoais
+    #Painel
     st.title('Aluno')
     col1, col2 = st.columns([2, 5])
     col1.metric("RA", ra, border=True)
     col2.metric("Nome", nome, border=True)
     st.metric("Segmento", segmento, border=True)
-    # st.divider()
-    # st.header('Local')
-    # col1, col2 = st.columns(2)
-    # col1.metric("Escola", escola, border=True)
-    # col2.metric("Cidade", cidade, border=True)
-    #Média das disciplinas
     st.divider()
     st.header('Notas')
     st.subheader(f'Média calibrada: {media_calibrada:.2f}')
@@ -361,34 +298,31 @@ if ra_nome is not None:
             registro_resposta_nota_condizente = df.loc[df['RA'] == ra, 'resposta_nota_condizente'].iloc[0]
 
         with st.form(key='formulario'):
-            # Acadêmico
+            #listas do formulario
             caixa_argumentacao = ['Superficial - apenas reproduz',
                                 'Argumenta e se posiciona, trazendo sua opinião de forma consistente',
                                 'Sempre traz elementos além dos solicitados']
             caixa_rotina_estudos = ['Não', 'Precisa melhorar', 'Sim']
             caixa_atividades_extracurriculares = ['Nenhuma', 'Uma', 'Mais de uma']
-            #Perfil
             caixa_nunca_eventualmente_sempre = ['Nunca', 'Eventualmente', 'Sempre']
             caixa_networking = ['Tem dificuldade', 'Sim (dentro da escola)', 'Sim, (além da escola)']
-            # Psicológico
             caixa_fragilidade = ['Não',
                                 'Sim, com baixa probabilidade de impacto',
                                 'Sim, com média probabilidade de impacto',
                                 'Sim, com alta probabilidade de impacto']
             caixa_ideacao_suicida = ['Não', 'Sim, estável', 'Sim, em risco']
-            # Apenas para alunos do 3º Ano
             caixa_coerencia_enem = ['Sim', 'Não', 'Sim para ser recomendado pelo Ismart para cursinho Med']
             caixa_nota_condizente = ['Não', 'Sim', 'Sim para ser recomendado pelo Ismart para cursinho Med']
-            # Preencha
+            #Preenchimento
             st.header('Preencha o formulário')
-            # Acadêmico
+        
             st.divider()
             st.subheader('Acadêmico')
             resposta_argumentacao = st.radio('**O aluno traz conteúdos consistentes nas suas argumentações/interações (com orientadoras, escola parceira, outros)?**', caixa_argumentacao, index=retornar_indice(lista=caixa_argumentacao,variavel=registro_resposta_argumentacao))
             resposta_rotina_estudos = st.radio('**O aluno tem uma rotina de estudos adequada as suas necessidades?**', caixa_rotina_estudos, index=retornar_indice(lista=caixa_rotina_estudos,variavel=registro_resposta_rotina_estudos), horizontal=True)
             resposta_atividades_extracurriculares = st.radio('**O aluno faz atividades acadêmicas extracurriculares com vias a desenvolver seu talento acadêmico? (olimpiadas, projetos de iniciação cientifica, programação, Cultura inglesa/Inglês/Prep)**', caixa_atividades_extracurriculares, index=retornar_indice(lista=caixa_atividades_extracurriculares,variavel=registro_resposta_atividades_extracurriculares), horizontal=True)
             resposta_faltas = st.radio('**O aluno está com número de faltas e/ou atrasos que compromete o seu desempenho acadêmico?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_faltas), horizontal=True)
-            # Perfil
+           
             st.divider()
             st.subheader('Perfil')
             resposta_respeita_escola = st.radio('**O aluno respeita as normas da escola parceira?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_respeita_escola), horizontal=True)
@@ -397,28 +331,28 @@ if ra_nome is not None:
             resposta_atividades_nao_obrigatorias_ismart = st.radio('**O aluno aproveita e participa das atividades não obrigatórias do Ismart?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_atividades_nao_obrigatorias_ismart), horizontal=True)
             resposta_networking = st.radio('**O aluno cultiva relação na escola parceira e em outros contextos que a escola possibilita?**', caixa_networking, index=retornar_indice(lista=caixa_networking,variavel=registro_resposta_networking), horizontal=True)
             resposta_proatividade = st.radio('**O aluno é pró-ativo, ou seja, traz questionamentos críticos, sugestões, problemas, soluções, dúvidas?**', caixa_nunca_eventualmente_sempre, index=retornar_indice(lista=caixa_nunca_eventualmente_sempre,variavel=registro_resposta_proatividade), horizontal=True)
-            # Psicológico
+          
             st.divider()
             st.subheader('Psicológico/Questões Familiares/Saúde')
             resposta_questoes_psiquicas = st.radio('**O aluno apresenta questões psíquicas que podem vir a impactar seu desenvolvimento no projeto?**', caixa_fragilidade, index=retornar_indice(lista=caixa_fragilidade,variavel=registro_resposta_questoes_psiquicas))
             resposta_questoes_familiares = st.radio('**O aluno apresenta questões familiares que podem vir a impactar seu desenvolvimento no projeto?**', caixa_fragilidade, index=retornar_indice(lista=caixa_fragilidade,variavel=registro_resposta_questoes_familiares))
             resposta_questoes_saude = st.radio('**O aluno apresenta questões de saúde que podem vir a impactar seu desenvolvimento no projeto?**', caixa_fragilidade, index=retornar_indice(lista=caixa_fragilidade,variavel=registro_resposta_questoes_saude))
             resposta_ideacao_suicida = st.radio('**O aluno apresenta ideação suicida?**', caixa_ideacao_suicida, index=retornar_indice(lista=caixa_ideacao_suicida,variavel=registro_resposta_ideacao_suicida), horizontal=True)
-            #questão apenas para 8 e 1 anos
+      
             if ano == '8º EF' or ano == '1º EM':
                 st.divider()
                 st.subheader('Questão de 8°/1° ano')
                 resposta_adaptacao_projeto = st.radio('**O aluno conseguiu se adaptar bem ao projeto?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_adaptacao_projeto))
             else:
                 resposta_adaptacao_projeto = '-'
-            #questão apenas para 2 ano
+    
             if ano == '2º EM':
                 st.divider()
                 st.subheader('Questão de 2° ano')
                 resposta_seguranca_profissional = st.radio('**O aluno está seguro em seu processo de escolha profissional?**', caixa_sim_nao, index=retornar_indice(lista=caixa_sim_nao,variavel=registro_resposta_seguranca_profissional))
             else:
                 resposta_seguranca_profissional = '-'
-            #questão apenas para 3 ano
+
             if ano == '3º EM':
                 st.divider()
                 st.subheader('Questões de 3° ano')
@@ -431,9 +365,9 @@ if ra_nome is not None:
                 if ano != '2º EM':
                     resposta_seguranca_profissional = '-'
 
-            #Botão registrar
             submit_button = st.form_submit_button(label='SALVAR')
             if submit_button:
+                # ação de input no sheets
                 if not resposta_argumentacao or not resposta_rotina_estudos or not resposta_atividades_extracurriculares or not resposta_faltas:
                     st.warning('Questões em **Acadêmico** do formulário não estão preenchidas')
                     st.stop()
@@ -447,7 +381,6 @@ if ra_nome is not None:
                     st.warning('**Questões de ano** do formulário não estão preenchidas')
                     st.stop()
                 else:
-                    #inserir classificação
                     df_insert = pd.DataFrame([{
                                             'RA': ra,
                                             'nome': nome,
@@ -475,7 +408,7 @@ if ra_nome is not None:
                                             }])
                     registrar(df_insert, 'registro', 'classificacao_automatica', ra)
         if not df.query(f"RA == {ra} and classificacao_automatica == classificacao_automatica").empty:
-            #colunas
+            #Variaveis do sheets
             classificacao_automatica = df.loc[df['RA'] == ra, 'classificacao_automatica'].iloc[0]
             motivo_classificao_automatica = df.loc[df['RA'] == ra, 'motivo_classificao_automatica'].iloc[0]
             nova_classificacao_orientadora = df.loc[df['RA'] == ra, 'nova_classificacao_orientadora'].iloc[0]
@@ -487,6 +420,7 @@ if ra_nome is not None:
             classificacao_final = df.loc[df['RA'] == ra, 'classificacao_final'].iloc[0]
             motivo_final = df.loc[df['RA'] == ra, 'motivo_final'].iloc[0]
 
+            #
             if 'confirmacao_alterada' not in st.session_state:
                 st.session_state['confirmacao_alterada'] = 'Não'
 
@@ -494,7 +428,6 @@ if ra_nome is not None:
                 st.session_state['classificacao_atual'] = classificacao_automatica
                 st.session_state['motivo_atual'] = motivo_classificao_automatica
 
-            #Formulario
             st.title('Confirmar classificação')
             st.metric("Classificação", st.session_state['classificacao_atual'], border=True)
             st.metric("Motivo", st.session_state['motivo_atual'], border=True)
@@ -513,7 +446,7 @@ if ra_nome is not None:
                         resposta_novo_motivo_classificacao_orientadora += f'{i}; '
                     resposta_novo_motivo_classificacao_orientadora = resposta_novo_motivo_classificacao_orientadora[:-2]
                     resposta_nova_justificativa_classificacao_orientadora = st.text_area(placeholder='Justifique a mudança de classificação', label='Justifique a mudança de classificação')
-
+                    resposta_nova_justificativa_classificacao_orientadora = resposta_nova_justificativa_classificacao_orientadora.strip()
                     submit_button = st.form_submit_button(label='ALTERAR')
                     if submit_button:
                         if not resposta_nova_classificacao_orientadora or not resposta_novo_motivo_classificacao_orientadora or not resposta_nova_justificativa_classificacao_orientadora:
@@ -572,11 +505,13 @@ if ra_nome is not None:
                         except:
                             historico_descricao_caso = None
                         resposta_descricao_caso = st.text_area(placeholder='Descrição do caso', label='Descrição do caso', value=historico_descricao_caso)
+                        resposta_descricao_caso = resposta_descricao_caso.strip()
                         try:
                             historico_plano_intervencao = df_historico.loc[df_historico['RA'] == ra, 'plano_intervencao'].iloc[0]
                         except:
                             historico_plano_intervencao = None
-                        resposta_plano_intervencao = st.text_area(placeholder='Plano de intervenção', label='Plano de intervenção', value=historico_plano_intervencao)
+                        resposta_plano_intervencao = st.text_area(placeholder='Plano de intervenção', label='Plano de intervenção', value=historico_plano_intervencao).strip()
+                        resposta_plano_intervencao = resposta_plano_intervencao.strip()
                     elif st.session_state['classificacao_atual'] == 'Atenção':
                         resposta_reversao = '-'
                         resposta_descricao_caso = '-'
@@ -584,12 +519,14 @@ if ra_nome is not None:
                             historico_plano_intervencao = df_historico.loc[df_historico['RA'] == ra, 'plano_intervencao'].iloc[0]
                         except:
                             historico_plano_intervencao = None
-                        resposta_plano_intervencao = st.text_area(placeholder='Plano de intervenção', label='Plano de intervenção', value=historico_plano_intervencao)
+                        resposta_plano_intervencao = st.text_area(placeholder='Plano de intervenção', label='Plano de intervenção', value=historico_plano_intervencao).strip()
+                        resposta_plano_intervencao = resposta_plano_intervencao.strip()
                     else:
                         resposta_reversao = '-'
                         resposta_descricao_caso = '-'
                         resposta_plano_intervencao = '-'
-
+                    df_login = ler_sheets_cache('login')
+                    cidade_login = df_login.query(f'email == "{email}"')["Cidade"].iloc[0]
                     if cidade_login == 'SP':
                         try:
                             registro_resposta_tier = df_historico.loc[df_historico['RA'] == ra, 'tier'].iloc[0]
@@ -692,557 +629,8 @@ if ra_nome is not None:
                                                     }])
                                 registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)
 
-elif not ra_nome and df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cargo"].iloc[0] == "coordenação":
-    df_coord = df.query('confirmacao_classificacao_orientadora == "Sim" or confirmacao_classificacao_orientadora == "Não"')
-    df_coord = df_coord[df_coord['RA'].isin(bd_segmentado['RA'])]
-
-    df_tabela_editavel = df_coord.query('confirmacao_classificacao_coordenacao != "Sim" and confirmacao_classificacao_coordenacao != "Não"')
-    df_tabela_editavel['manter_dados_iguais'] = '-' 
-    df_tabela_editavel = df_tabela_editavel[['manter_dados_iguais','RA','nome','classificacao_final','motivo_final',
-                                                'classificacao_automatica','motivo_classificao_automatica','confirmacao_classificacao_orientadora',
-                                                'nova_classificacao_orientadora','novo_motivo_classificacao_orientadora','nova_justificativa_classificacao_orientadora',
-                                                'reversao','descricao_caso','plano_intervencao','tier','resposta_argumentacao', 'resposta_rotina_estudos',
-                                                'resposta_atividades_extracurriculares','resposta_faltas','resposta_respeita_escola',
-                                                'resposta_atividades_obrigatorias_ismart','resposta_colaboracao',
-                                                'resposta_atividades_nao_obrigatorias_ismart','resposta_networking','resposta_proatividade',
-                                                'resposta_questoes_psiquicas','resposta_questoes_familiares','resposta_questoes_saude',
-                                                'resposta_ideacao_suicida','resposta_adaptacao_projeto','resposta_seguranca_profissional',
-                                                'resposta_curso_apoiado','resposta_nota_condizente']]
-
-    df_tabela_editavel = df_tabela_editavel.merge(bd[['RA', 'Orientadora', 'Segmento','Nota Matemática', 'Nota Português', 'Nota História', 'Nota Geografia', 
-                                                            'Nota Inglês', 'Nota Francês/Alemão e Outros', 'Nota Espanhol', 'Nota Química', 
-                                                            'Nota Física', 'Nota Biologia', 'Nota ENEM', 'Nota PU', 'media_calibrada']]
-                                                            , how='left', on='RA')
-    df_tabela_editavel.sort_values(by=['Segmento', 'nome'])
-
-    #Colunas Não Editaveis
-    colunas_nao_editaveis = df_tabela_editavel.columns.to_list()
-    colunas_nao_editaveis.remove('manter_dados_iguais')
-
-    st.title('Tabela de Confirmação')
-    with st.form(key='tabela_editavel_cord_confirmacao'):
-        # Configure o data editor
-        edited_df = st.data_editor(
-            df_tabela_editavel[['manter_dados_iguais','RA','nome','Orientadora', 'Segmento','classificacao_final'
-                                ,'motivo_final','classificacao_automatica','motivo_classificao_automatica','confirmacao_classificacao_orientadora',
-                                'nova_classificacao_orientadora','novo_motivo_classificacao_orientadora','nova_justificativa_classificacao_orientadora',
-                                'reversao','descricao_caso','plano_intervencao','tier',
-                                'resposta_argumentacao','resposta_rotina_estudos','resposta_atividades_extracurriculares','resposta_faltas',
-                                'resposta_respeita_escola','resposta_atividades_obrigatorias_ismart','resposta_colaboracao',
-                                'resposta_atividades_nao_obrigatorias_ismart','resposta_networking','resposta_proatividade',
-                                'resposta_questoes_psiquicas','resposta_questoes_familiares','resposta_questoes_saude','resposta_ideacao_suicida',
-                                'resposta_adaptacao_projeto','resposta_seguranca_profissional','resposta_curso_apoiado','resposta_nota_condizente',
-                                'Nota Matemática','Nota Português','Nota História','Nota Geografia','Nota Inglês','Nota Francês/Alemão e Outros',
-                                'Nota Espanhol','Nota Química','Nota Física','Nota Biologia','Nota ENEM','Nota PU','media_calibrada']],
-            column_config={
-                "manter_dados_iguais": st.column_config.SelectboxColumn(
-                    "Manter Dados Iguais?",
-                    help="Selecione 'Sim' Para Manter e 'Não' Para Alterar",
-                    options=['Sim', 'Não', '-'],
-                    required=True
-                ),
-                "RA": st.column_config.TextColumn(
-                    "RA",
-                    required=False
-                ),
-                "nome": st.column_config.TextColumn(
-                    "Nome",
-                    required=False
-                ),
-                "Orientadora": st.column_config.TextColumn(
-                    "Orientadora",
-                    required=False
-                ),
-                "classificacao_final": st.column_config.TextColumn(
-                    "Classificação Final",
-                    required=False
-                ),
-                "motivo_final": st.column_config.TextColumn(
-                    "Motivo Classificação Final",
-                    required=False
-                ),
-                "classificacao_automatica": st.column_config.TextColumn(
-                    "Classificação Automatica",
-                    required=False
-                ),
-                "motivo_classificao_automatica": st.column_config.TextColumn(
-                    "Motivo Classificação Automatica",
-                    required=False
-                ),
-                "confirmacao_classificacao_orientadora": st.column_config.TextColumn(
-                    "Orientadora Confirmou a classificação Automatica?",
-                    required=False
-                ),
-                "nova_classificacao_orientadora": st.column_config.TextColumn(
-                    "Classificação da Orientadora",
-                    required=False
-                ),
-                "novo_motivo_classificacao_orientadora": st.column_config.TextColumn(
-                    "Motivo da Orientadora",
-                    required=False
-                ),
-                "nova_justificativa_classificacao_orientadora": st.column_config.TextColumn(
-                    "Justificativa da Orientadora",
-                    required=False
-                ),
-                "reversao": st.column_config.TextColumn(
-                    "Reversão",
-                    required=False
-                ),
-                "descricao_caso": st.column_config.TextColumn(
-                    "Descrição do Caso",
-                    required=False
-                ),
-                "plano_intervencao": st.column_config.TextColumn(
-                    "Plano de Intervenção",
-                    required=False
-                ),
-                "tier": st.column_config.TextColumn(
-                    "Tier",
-                    required=False
-                ),
-                "resposta_argumentacao": st.column_config.TextColumn(
-                    "Resposta - Nivel de Argumentação/Interações",
-                    required=False
-                ),
-                "resposta_rotina_estudos": st.column_config.TextColumn(
-                    "Resposta - Rotina de Estudos Adequada?",
-                    required=False
-                ),
-                "resposta_atividades_extracurriculares": st.column_config.TextColumn(
-                    "Resposta - Atividades Extracurriculares",
-                    required=False
-                ),
-                "resposta_faltas": st.column_config.TextColumn(
-                    "Resposta - Número de Faltas comprometentes?",
-                    required=False
-                ),
-                "resposta_respeita_escola": st.column_config.TextColumn(
-                    "Resposta - Respeita Normas Escolares?",
-                    required=False
-                ),
-                "resposta_atividades_obrigatorias_ismart": st.column_config.TextColumn(
-                    "Resposta - Participa das Atividades Obrigatórias?",
-                    required=False
-                ),
-                "resposta_colaboracao": st.column_config.TextColumn(
-                    "Resposta - É Colaborativo Com Amigos?",
-                    required=False
-                ),
-                "resposta_atividades_nao_obrigatorias_ismart": st.column_config.TextColumn(
-                    "Resposta - Participa das Atividades Não Obrigatórias?",
-                    required=False
-                ),
-                "resposta_networking": st.column_config.TextColumn(
-                    "Resposta - Cultiva Parcerias?",
-                    required=False
-                ),
-                "resposta_proatividade": st.column_config.TextColumn(
-                    "Resposta - É Proativo?",
-                    required=False
-                ),
-                "resposta_questoes_psiquicas": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Psíquicas de impacto?",
-                    required=False
-                ),
-                "resposta_questoes_familiares": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Familiares de impacto?",
-                    required=False
-                ),
-                "resposta_questoes_saude": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Saúde de impacto?",
-                    required=False
-                ),
-                "resposta_ideacao_suicida": st.column_config.TextColumn(
-                    "Resposta - Apresenta Ideação Suicida?",
-                    required=False
-                ),
-                "resposta_adaptacao_projeto": st.column_config.TextColumn(
-                    "Resposta - Se Adaptou ao Projeto?",
-                    required=False
-                ),
-                "resposta_seguranca_profissional": st.column_config.TextColumn(
-                    "Resposta - Tem Segurança Proficional?",
-                    required=False
-                ),
-                "resposta_curso_apoiado": st.column_config.TextColumn(
-                    "Resposta - Deseja Curso Apoiado?",
-                    required=False
-                ),
-                "resposta_nota_condizente": st.column_config.TextColumn(
-                    "Resposta - Nota Condizente Com o Curso Desejado?",
-                    required=False
-                ),
-                "Segmento": st.column_config.TextColumn(
-                    "Segmento",
-                    required=False
-                ),
-                "Nota Matemática": st.column_config.NumberColumn(
-                    "Nota Matemática",
-                    required=False
-                ),
-                "Nota Português": st.column_config.NumberColumn(
-                    "Nota Português",
-                    required=False
-                ),
-                "Nota História": st.column_config.NumberColumn(
-                    "Nota História",
-                    required=False
-                ),
-                "Nota Geografia": st.column_config.NumberColumn(
-                    "Nota Geografia",
-                    required=False
-                ),
-                "Nota Inglês": st.column_config.NumberColumn(
-                    "Nota Inglês",
-                    required=False
-                ),
-                "Nota Francês/Alemão e Outros": st.column_config.NumberColumn(
-                    "Nota Francês/Alemão e Outros",
-                    required=False
-                ),
-                "Nota Espanhol": st.column_config.NumberColumn(
-                    "Nota Espanhol",
-                    required=False
-                ),
-                "Nota Química": st.column_config.NumberColumn(
-                    "Nota Química",                        required=False
-                ),        
-                "Nota Física": st.column_config.NumberColumn(
-                    "Nota Física",
-                    required=False
-                ),
-                "Nota Biologia": st.column_config.NumberColumn(
-                    "Nota Biologia",
-                    required=False
-                ),
-                "Nota ENEM": st.column_config.NumberColumn(
-                    "Nota ENEM",
-                    required=False
-                ),
-                "Nota PU": st.column_config.NumberColumn(
-                    "Nota PU",
-                    required=False
-                ),                          
-                "media_calibrada": st.column_config.NumberColumn(
-                    "Média Calibrada",
-                    required=False
-                ),                          
-            },
-            disabled=colunas_nao_editaveis,
-            hide_index=True,
-        )
-        submit_button = st.form_submit_button(label='REGISTRAR')
-    
-    if submit_button:
-        #filtro do df_tabela_editavel para os que cofirmaram 
-        df_tabela_editavel = edited_df.loc[~edited_df['manter_dados_iguais'].isin(['-'])]
-        if df_tabela_editavel.shape[0] == 0:
-            st.warning('Revise ao menos um aluno antes de salvar')
-        else:
-            df_tabela_editavel_sim = df_tabela_editavel.loc[df_tabela_editavel['manter_dados_iguais'].isin(['Sim'])]
-            df_tabela_editavel_nao = df_tabela_editavel.loc[df_tabela_editavel['manter_dados_iguais'].isin(['Não'])]
-            
-            df_tabela_editavel['confirmacao_classificacao_coordenacao'] = df_tabela_editavel['manter_dados_iguais']
-            df_tabela_editavel['conclusao_classificacao_final'] = df_tabela_editavel['manter_dados_iguais']
-            df_tabela_editavel = df_tabela_editavel[[
-                'RA', 'nome', 'resposta_argumentacao', 'resposta_rotina_estudos',
-                'resposta_faltas', 'resposta_atividades_extracurriculares', 'resposta_respeita_escola',
-                'resposta_atividades_obrigatorias_ismart', 'resposta_colaboracao',
-                'resposta_atividades_nao_obrigatorias_ismart', 'resposta_networking',
-                'resposta_proatividade', 'resposta_questoes_psiquicas', 'resposta_questoes_familiares',
-                'resposta_questoes_saude', 'resposta_ideacao_suicida', 'resposta_adaptacao_projeto',
-                'resposta_seguranca_profissional', 'resposta_curso_apoiado', 'resposta_nota_condizente',
-                'classificacao_automatica', 'motivo_classificao_automatica',
-                'confirmacao_classificacao_orientadora', 'nova_classificacao_orientadora',
-                'novo_motivo_classificacao_orientadora', 'nova_justificativa_classificacao_orientadora',
-                'reversao', 'descricao_caso', 'plano_intervencao', 'tier', 'confirmacao_classificacao_coordenacao', 
-                'classificacao_final', 'motivo_final', 'conclusao_classificacao_final'
-            ]]   
-            
-            df_tabela_editavel['data_submit'] = datetime.now(fuso_horario)
-            lista_ras = df_tabela_editavel['RA']
-            lista_ras = lista_ras.to_list()
-            registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final', lista_ras)
-
-    #Tabela de Ediçao                        
-    st.title('Tabela de Edição')
-    #Preparação do Data editor
-    df_tabela_editavel = df[df['RA'].isin(bd_segmentado['RA'])]
-    df_tabela_editavel = df_tabela_editavel.query("conclusao_classificacao_final == 'Não'")
-    df_tabela_editavel = df_tabela_editavel[['conclusao_classificacao_final','RA','nome','classificacao_final','motivo_final', 'justificativa_classificacao_coord',
-                                            'classificacao_automatica','motivo_classificao_automatica','confirmacao_classificacao_orientadora',
-                                            'nova_classificacao_orientadora','novo_motivo_classificacao_orientadora','nova_justificativa_classificacao_orientadora',
-                                            'reversao','descricao_caso','plano_intervencao','tier','resposta_argumentacao', 'resposta_rotina_estudos',
-                                            'resposta_atividades_extracurriculares','resposta_faltas','resposta_respeita_escola',
-                                            'resposta_atividades_obrigatorias_ismart','resposta_colaboracao',
-                                            'resposta_atividades_nao_obrigatorias_ismart','resposta_networking','resposta_proatividade',
-                                            'resposta_questoes_psiquicas','resposta_questoes_familiares','resposta_questoes_saude',
-                                            'resposta_ideacao_suicida','resposta_adaptacao_projeto','resposta_seguranca_profissional',
-                                            'resposta_curso_apoiado','resposta_nota_condizente', 'confirmacao_classificacao_coordenacao']]
-    df_tabela_editavel = df_tabela_editavel.merge(bd[['RA', 'Orientadora', 'Segmento','Nota Matemática', 'Nota Português', 'Nota História', 'Nota Geografia', 
-                                                            'Nota Inglês', 'Nota Francês/Alemão e Outros', 'Nota Espanhol', 'Nota Química', 
-                                                            'Nota Física', 'Nota Biologia', 'Nota ENEM', 'Nota PU', 'media_calibrada']]
-                                                            , how='left', on='RA')
-    df_tabela_editavel.sort_values(by=['Segmento', 'nome'])
-    
-    #Colunas Não Editaveis
-    colunas_nao_editaveis = df_tabela_editavel.columns.to_list()
-    colunas_nao_editaveis = [col for col in colunas_nao_editaveis if col not in ['conclusao_classificacao_final', 'justificativa_classificacao_coord', 
-                                                                                    'classificacao_final', 'motivo_final', 'tier', 'plano_intervencao',
-                                                                                    'descricao_caso', 'reversao', 
-                                                                                ]]
-    df_tabela_editavel['justificativa_classificacao_coord'] = df_tabela_editavel['justificativa_classificacao_coord'].astype(str)
-    df_tabela_editavel['conclusao_classificacao_final'] = '-'
-    # Data editor
-    with st.form(key='tabela_editavel_cord_edicao'):
-        # Configure o data editor
-        edited_df = st.data_editor(
-            df_tabela_editavel[['conclusao_classificacao_final','RA','nome','classificacao_final', 'motivo_final','justificativa_classificacao_coord',
-                                'reversao','descricao_caso','plano_intervencao','tier', 'Orientadora', 'Segmento',
-                                'classificacao_automatica','motivo_classificao_automatica', 'confirmacao_classificacao_orientadora','nova_classificacao_orientadora',
-                                'novo_motivo_classificacao_orientadora','nova_justificativa_classificacao_orientadora',
-                                'resposta_argumentacao','resposta_rotina_estudos','resposta_atividades_extracurriculares','resposta_faltas',
-                                'resposta_respeita_escola','resposta_atividades_obrigatorias_ismart','resposta_colaboracao',
-                                'resposta_atividades_nao_obrigatorias_ismart','resposta_networking','resposta_proatividade',
-                                'resposta_questoes_psiquicas','resposta_questoes_familiares','resposta_questoes_saude','resposta_ideacao_suicida',
-                                'resposta_adaptacao_projeto','resposta_seguranca_profissional','resposta_curso_apoiado','resposta_nota_condizente',
-                                'Nota Matemática','Nota Português','Nota História','Nota Geografia','Nota Inglês','Nota Francês/Alemão e Outros',
-                                'Nota Espanhol','Nota Química','Nota Física','Nota Biologia','Nota ENEM','Nota PU','media_calibrada']],
-            column_config={
-                "conclusao_classificacao_final": st.column_config.SelectboxColumn(
-                    "Confirmar Classificação Final?",
-                    help='Selecione "Sim" ou "Não" Para Finalizar As Alterações. ' \
-                    '"Sim" Se você Manteve a Classificação Igual e "Não" no Contrário',
-                    options=['Sim', 'Não', '-'],
-                    required=True
-                ),
-                "justificativa_classificacao_coord": st.column_config.TextColumn(
-                    "Justificativa da Coordenadora",
-                    required=False
-                ),
-                "RA": st.column_config.TextColumn(
-                    "RA",
-                    required=False
-                ),
-                "nome": st.column_config.TextColumn(
-                    "Nome",
-                    required=False
-                ),
-                "Orientadora": st.column_config.TextColumn(
-                    "Orientadora",
-                    required=False
-                ),
-                "classificacao_final": st.column_config.SelectboxColumn(
-                    "Classificação Final",
-                    options=caixa_classificacao,
-                    required=False
-                ),
-                "motivo_final": st.column_config.TextColumn(
-                    "Motivo Classificação Final",
-                    help=f'opções = {caixa_justificativa_classificacao}',
-                    required=False
-                ),
-                "classificacao_automatica": st.column_config.TextColumn(
-                    "Classificação Automatica",
-                    required=False
-                ),
-                "motivo_classificao_automatica": st.column_config.TextColumn(
-                    "Motivo Classificação Automatica",
-                    required=False
-                ),
-                "confirmacao_classificacao_orientadora": st.column_config.TextColumn(
-                    "Orientadora Confirmou a classificação Automatica?",
-                    required=False
-                ),
-                "nova_classificacao_orientadora": st.column_config.TextColumn(
-                    "Classificação da Orientadora",
-                    required=False
-                ),
-                "novo_motivo_classificacao_orientadora": st.column_config.TextColumn(
-                    "Motivo da Orientadora",
-                    help=f'opções = {caixa_justificativa_classificacao}',
-                    required=False
-                ),
-                "nova_justificativa_classificacao_orientadora": st.column_config.TextColumn(
-                    "Justificativa da Orientadora",
-                    required=False
-                ),
-                "reversao": st.column_config.TextColumn(
-                    "Reversão",
-                    required=False
-                ),
-                "descricao_caso": st.column_config.TextColumn(
-                    "Descrição do Caso",
-                    required=False
-                ),
-                "plano_intervencao": st.column_config.TextColumn(
-                    "Plano de Intervenção",
-                    required=False
-                ),
-                "tier": st.column_config.TextColumn(
-                    "Tier",
-                    help=f'Opções: {caixa_tier}',
-                    required=False
-                ),
-                "resposta_argumentacao": st.column_config.TextColumn(
-                    "Resposta - Nivel de Argumentação/Interações",
-                    required=False
-                ),
-                "resposta_rotina_estudos": st.column_config.TextColumn(
-                    "Resposta - Rotina de Estudos Adequada?",
-                    required=False
-                ),
-                "resposta_atividades_extracurriculares": st.column_config.TextColumn(
-                    "Resposta - Atividades Extracurriculares",
-                    required=False
-                ),
-                "resposta_faltas": st.column_config.TextColumn(
-                    "Resposta - Número de Faltas comprometentes?",
-                    required=False
-                ),
-                "resposta_respeita_escola": st.column_config.TextColumn(
-                    "Resposta - Respeita Normas Escolares?",
-                    required=False
-                ),
-                "resposta_atividades_obrigatorias_ismart": st.column_config.TextColumn(
-                    "Resposta - Participa das Atividades Obrigatórias?",
-                    required=False
-                ),
-                "resposta_colaboracao": st.column_config.TextColumn(
-                    "Resposta - É Colaborativo Com Amigos?",
-                    required=False
-                ),
-                "resposta_atividades_nao_obrigatorias_ismart": st.column_config.TextColumn(
-                    "Resposta - Participa das Atividades Não Obrigatórias?",
-                    required=False
-                ),
-                "resposta_networking": st.column_config.TextColumn(
-                    "Resposta - Cultiva Parcerias?",
-                    required=False
-                ),
-                "resposta_proatividade": st.column_config.TextColumn(
-                    "Resposta - É Proativo?",
-                    required=False
-                ),
-                "resposta_questoes_psiquicas": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Psíquicas de impacto?",
-                    required=False
-                ),
-                "resposta_questoes_familiares": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Familiares de impacto?",
-                    required=False
-                ),
-                "resposta_questoes_saude": st.column_config.TextColumn(
-                    "Resposta - Apresenta Questões Saúde de impacto?",
-                    required=False
-                ),
-                "resposta_ideacao_suicida": st.column_config.TextColumn(
-                    "Resposta - Apresenta Ideação Suicida?",
-                    required=False
-                ),
-                "resposta_adaptacao_projeto": st.column_config.TextColumn(
-                    "Resposta - Se Adaptou ao Projeto?",
-                    required=False
-                ),
-                "resposta_seguranca_profissional": st.column_config.TextColumn(
-                    "Resposta - Tem Segurança Proficional?",
-                    required=False
-                ),
-                "resposta_curso_apoiado": st.column_config.TextColumn(
-                    "Resposta - Deseja Curso Apoiado?",
-                    required=False
-                ),
-                "resposta_nota_condizente": st.column_config.TextColumn(
-                    "Resposta - Nota Condizente Com o Curso Desejado?",
-                    required=False
-                ),
-                "Segmento": st.column_config.TextColumn(
-                    "Segmento",
-                    required=False
-                ),
-                "Nota Matemática": st.column_config.NumberColumn(
-                    "Nota Matemática",
-                    required=False
-                ),
-                "Nota Português": st.column_config.NumberColumn(
-                    "Nota Português",
-                    required=False
-                ),
-                "Nota História": st.column_config.NumberColumn(
-                    "Nota História",
-                    required=False
-                ),
-                "Nota Geografia": st.column_config.NumberColumn(
-                    "Nota Geografia",
-                    required=False
-                ),
-                "Nota Inglês": st.column_config.NumberColumn(
-                    "Nota Inglês",
-                    required=False
-                ),
-                "Nota Francês/Alemão e Outros": st.column_config.NumberColumn(
-                    "Nota Francês/Alemão e Outros",
-                    required=False
-                ),
-                "Nota Espanhol": st.column_config.NumberColumn(
-                    "Nota Espanhol",
-                    required=False
-                ),
-                "Nota Química": st.column_config.NumberColumn(
-                    "Nota Química",                        required=False
-                ),        
-                "Nota Física": st.column_config.NumberColumn(
-                    "Nota Física",
-                    required=False
-                ),
-                "Nota Biologia": st.column_config.NumberColumn(
-                    "Nota Biologia",
-                    required=False
-                ),
-                "Nota ENEM": st.column_config.NumberColumn(
-                    "Nota ENEM",
-                    required=False
-                ),
-                "Nota PU": st.column_config.NumberColumn(
-                    "Nota PU",
-                    required=False
-                ),                          
-                "media_calibrada": st.column_config.NumberColumn(
-                    "Média Calibrada",
-                    required=False
-                ),                          
-            },
-            disabled=colunas_nao_editaveis,
-            hide_index=True,
-        )
-        submit_button = st.form_submit_button(label='REGISTRAR')
-    if submit_button:
-        df_tabela_editavel = edited_df.query("conclusao_classificacao_final == 'Sim' or conclusao_classificacao_final == 'Não'")
-        if df_tabela_editavel.shape[0] > 0:
-            df_tabela_editavel = df_tabela_editavel[[
-                'RA', 'nome', 'resposta_argumentacao', 'resposta_rotina_estudos',
-                'resposta_faltas', 'resposta_atividades_extracurriculares', 'resposta_respeita_escola',
-                'resposta_atividades_obrigatorias_ismart', 'resposta_colaboracao',
-                'resposta_atividades_nao_obrigatorias_ismart', 'resposta_networking',
-                'resposta_proatividade', 'resposta_questoes_psiquicas', 'resposta_questoes_familiares',
-                'resposta_questoes_saude', 'resposta_ideacao_suicida', 'resposta_adaptacao_projeto',
-                'resposta_seguranca_profissional', 'resposta_curso_apoiado', 'resposta_nota_condizente',
-                'classificacao_automatica', 'motivo_classificao_automatica',
-                'confirmacao_classificacao_orientadora', 'nova_classificacao_orientadora',
-                'novo_motivo_classificacao_orientadora', 'nova_justificativa_classificacao_orientadora',
-                'reversao', 'descricao_caso', 'plano_intervencao', 'tier', 'justificativa_classificacao_coord',
-                'classificacao_final', 'motivo_final', 'conclusao_classificacao_final'
-            ]]   
-            df_tabela_editavel['data_submit'] = datetime.now(fuso_horario)
-            df_tabela_editavel['confirmacao_classificacao_coordenacao'] = df_tabela_editavel['conclusao_classificacao_final']
-            df_tabela_editavel['conclusao_classificacao_final'] = 'Sim'
-            lista_ras = df_tabela_editavel['RA']
-            lista_ras = lista_ras.to_list()
-            registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final', lista_ras)
-        else:
-            st.warning('Revise ao menos um aluno antes de registrar')
-elif not ra_nome and df_login.query(f'login == "{st.session_state["authenticated_username"]}"')["cargo"].iloc[0] == "orientadora":
+else:
+#Tabela De Confirmação
     # Filtro personalizado no histórico
     df_historico_filtrado = df_historico[~df_historico['RA'].isin(df['RA'])]
     df_historico_filtrado = df_historico_filtrado[df_historico_filtrado['RA'].isin(bd_segmentado['RA'])]
@@ -1503,7 +891,6 @@ elif not ra_nome and df_login.query(f'login == "{st.session_state["authenticated
         if df_tabela_editavel.shape[0] == 0:
             st.warning('Revise ao menos um aluno antes de salvar')
         else:
-            df = ler_sheets('registro')
             df_insert = df_tabela_editavel[[
                                 'RA', 'nome', 'data_submit', 'resposta_argumentacao', 'resposta_rotina_estudos',
                                 'resposta_faltas', 'resposta_atividades_extracurriculares', 'resposta_respeita_escola',
@@ -1523,3 +910,4 @@ elif not ra_nome and df_login.query(f'login == "{st.session_state["authenticated
             lista_ras = lista_ras.to_list()
             df_insert.drop_duplicates('RA')
             registrar(df_insert, 'registro', 'RA', lista_ras)
+            
