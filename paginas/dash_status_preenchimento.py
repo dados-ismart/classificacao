@@ -1,17 +1,14 @@
 import streamlit as st
 import pandas as pd
 import pytz
-from paginas.funcoes import ler_sheets, ler_sheets_cache
+from paginas.funcoes import ler_sheets, ler_sheets_cache, registrar, esvazia_aba
+from time import sleep
 
 # importar dados
 df = ler_sheets('registro')
-df['RA'] = df['RA'].astype(int)
-bd = df_login = ler_sheets_cache('bd')
-bd['RA'] = bd['RA'].astype(int)
-df_login = ler_sheets_cache('login')
-df_login = df_login.query("cargo == 'coordenação'")
+bd = ler_sheets_cache('bd')
 bd = bd.merge(df[['RA', 'confirmacao_classificacao_orientadora','conclusao_classificacao_final']], how='left', on='RA')
-bd = bd.merge(df_login[['Cidade', 'login']], how='left', on='Cidade')
+
 
 st.title('Geral')
 st.header('Alunos Registrados por Orientadoras')
@@ -64,21 +61,56 @@ with st.expander("Orientadoras"):
             alunos_orientadora_total = bd.query(f"Orientadora == '{orientadora}'")
             alunos_orientadora_total_registrados = alunos_orientadora_total.query("confirmacao_classificacao_orientadora == 'Não' or confirmacao_classificacao_orientadora == 'Sim'")
             try:
-                st.progress(alunos_orientadora_total_registrados.shape[0]/alunos_orientadora_total.shape[0], f'Você registrou: **{alunos_orientadora_total_registrados.shape[0]}/{alunos_orientadora_total.shape[0]}**')
+                st.progress(alunos_orientadora_total_registrados.shape[0]/alunos_orientadora_total.shape[0], f'Registrou: **{alunos_orientadora_total_registrados.shape[0]}/{alunos_orientadora_total.shape[0]}**')
             except ZeroDivisionError:
                 st.error('Zero Resultados')
 
-with st.expander("Coordenadoras"):
-    coordenadoras_por_cidade = bd.groupby('Cidade')['login'].unique().to_dict()
-    for cidade, coordenadoras in coordenadoras_por_cidade.items():
-        st.divider()
-        st.header(f'{cidade}')
-        for coordenadora in coordenadoras:
-            st.subheader(f'{coordenadora}')
-            alunos_orientadora_total = bd.query(f"login == '{coordenadora}'")
-            alunos_orientadora_total_registrados = alunos_orientadora_total.query("conclusao_classificacao_final == 'Sim'")
-            try:
-                st.progress(alunos_orientadora_total_registrados.shape[0]/alunos_orientadora_total.shape[0], f'Você registrou: **{alunos_orientadora_total_registrados.shape[0]}/{alunos_orientadora_total.shape[0]}**')
-            except ZeroDivisionError:
-                st.error('Zero Resultados')
 
+# Automatização da atualização de histórico
+st.divider()
+@st.dialog("Insira a senha e confirme para reiniciar a classificação")
+def input_popup():
+    with st.form(key='confirmacao_classificacao_mes'):
+        senha = st.text_input("Senha")
+        submit_button = st.form_submit_button(label='Confirmar')
+    if submit_button:
+        st.session_state.senha = senha
+        st.rerun()
+        
+if st.button("Finalizar Classificação do Mês"):
+    input_popup()
+
+if 'registro_finalizado' not in st.session_state:
+    st.session_state.registro_finalizado = False
+
+if 'limpeza_finalizada' not in st.session_state:
+    st.session_state.limpeza_finalizada = False
+
+if 'senha' in st.session_state:
+    if st.session_state.senha == 'Dados_123':
+        st.session_state.registro_finalizado = True
+        st.session_state.limpeza_finalizada = True
+
+if st.session_state.registro_finalizado:
+    st.session_state.registro_finalizado = False
+    del st.session_state["senha"]
+    bd = ler_sheets_cache('bd')
+    df = ler_sheets('registro')
+    df_insert = df.merge(bd[['RA', 'Cidade','Escola','Nota Matemática'
+                                    ,'Nota Português','Nota História','Nota Geografia'
+                                    ,'Nota Inglês','Nota Francês/Alemão e Outros'
+                                    ,'Nota Espanhol','Nota Química','Nota Física'
+                                    ,'Nota Biologia','Nota ENEM','Nota PU'
+                                    ,'media_calibrada','Orientadora','Ano','Segmento']]
+                                    , how='left', on='RA')
+    registrar(df_insert, 'historico', 'RA', False)
+
+if st.session_state.limpeza_finalizada:
+    st.session_state.limpeza_finalizada = False
+
+    esvazia_aba('registro')
+
+    st.toast("Classificação do Mês Concluída!", icon="✅")
+    sleep(2)
+    st.rerun()
+        
