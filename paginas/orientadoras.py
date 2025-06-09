@@ -14,14 +14,12 @@ caixa_tier = ['2c', '2i', '3c', '3i', '4']
 #importar e tratar datasets
 bd = ler_sheets_cache('bd')
 bd = bd.dropna(subset=['RA - NOME'])
-bd['RA'] = bd['RA'].astype(int)
 df = ler_sheets('registro')
-df['RA'] = df['RA'].astype(int)
 df_historico = ler_sheets_cache('historico')
-df_historico['RA'] = df_historico['RA'].astype(int)
 bd = bd.merge(df[['RA', 'confirmacao_classificacao_orientadora','conclusao_classificacao_final']], how='left', on='RA')
 bd = bd.sort_values(by=['conclusao_classificacao_final','confirmacao_classificacao_orientadora'], ascending = False)
 df_login = ler_sheets_cache('login')
+#df_historico['RA'] = df_historico['RA'].astype(int)
 
 orientadora = df_login.loc[df_login['email'] == email, 'login'].iloc[0]
 
@@ -111,7 +109,6 @@ if ra_nome is not None:
 
     qtd_somas_ciencias_naturais = 0
     ciencias_naturais = 0
-
     if fisica != '-':
         ciencias_naturais += fisica
         qtd_somas_ciencias_naturais += 1
@@ -121,7 +118,6 @@ if ra_nome is not None:
     if biologia != '-':
         ciencias_naturais += biologia
         qtd_somas_ciencias_naturais += 1
-
     try:
         ciencias_naturais = ciencias_naturais/qtd_somas_ciencias_naturais
     except:
@@ -406,7 +402,7 @@ if ra_nome is not None:
                                             'classificacao_automatica': classificar(media_calibrada, portugues, matematica, humanas, idiomas, ciencias_naturais, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[0],
                                             'motivo_classificao_automatica': classificar(media_calibrada, portugues, matematica, humanas, idiomas, ciencias_naturais, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[1],
                                             }])
-                    registrar(df_insert, 'registro', 'classificacao_automatica', ra)
+                    registrar(df_insert, 'registro', 'classificacao_automatica')
         if not df.query(f"RA == {ra} and classificacao_automatica == classificacao_automatica").empty:
             #Variaveis do sheets
             classificacao_automatica = df.loc[df['RA'] == ra, 'classificacao_automatica'].iloc[0]
@@ -487,7 +483,7 @@ if ra_nome is not None:
                                                     'classificacao_final': resposta_nova_classificacao_orientadora,
                                                     'motivo_final': resposta_novo_motivo_classificacao_orientadora
                                                     }])
-                            registrar(df_insert, 'registro', 'nova_classificacao_orientadora', ra)
+                            registrar(df_insert, 'registro', 'nova_classificacao_orientadora')
             else:
                 with st.form(key='formulario_descricao'):
                     resposta_nova_classificacao_orientadora = df.loc[df['RA'] == ra, 'nova_classificacao_orientadora'].iloc[0]
@@ -589,7 +585,7 @@ if ra_nome is not None:
                                                     'classificacao_final': classificar(media_calibrada, portugues, matematica, humanas, idiomas, ciencias_naturais, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[0],
                                                     'motivo_final': classificar(media_calibrada, portugues, matematica, humanas, idiomas, ciencias_naturais, resposta_faltas, ano, caixa_nota_condizente, resposta_adaptacao_projeto , resposta_nota_condizente, resposta_seguranca_profissional, resposta_curso_apoiado , caixa_fragilidade, resposta_questoes_saude, resposta_questoes_familiares, resposta_questoes_psiquicas, resposta_ideacao_suicida , caixa_ideacao_suicida , resposta_argumentacao, resposta_rotina_estudos, resposta_atividades_extracurriculares, resposta_respeita_escola, resposta_atividades_obrigatorias_ismart, resposta_colaboracao, resposta_atividades_nao_obrigatorias_ismart, resposta_networking, resposta_proatividade,caixa_argumentacao,caixa_rotina_estudos,caixa_sim_nao,caixa_atividades_extracurriculares,caixa_nunca_eventualmente_sempre,caixa_networking, caixa_classificacao, caixa_justificativa_classificacao)[1]
                                                     }])
-                                registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)
+                                registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora')
                             elif resposta_confirmar_classificacao == 'Não':
                                 df_insert = pd.DataFrame([{
                                                     'RA': ra,
@@ -627,7 +623,7 @@ if ra_nome is not None:
                                                     'motivo_final': novo_motivo_classificacao_orientadora
 
                                                     }])
-                                registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora', ra)
+                                registrar(df_insert, 'registro', 'confirmacao_classificacao_orientadora')
 
 else:
 #Tabela De Confirmação
@@ -683,147 +679,147 @@ else:
                     options=['Sim', '-'],
                     required=True
                 ),
-                "RA": st.column_config.TextColumn(
+                "RA": st.column_config.Column(
                     "RA",
                     required=False
                 ),
-                "nome": st.column_config.TextColumn(
+                "nome": st.column_config.Column(
                     "Nome",
                     required=False
                 ),
-                "data_submit": st.column_config.TextColumn(
+                "data_submit": st.column_config.Column(
                     "Data de Registro",
                     required=False
                 ),
-                "classificacao_final": st.column_config.TextColumn(
+                "classificacao_final": st.column_config.Column(
                     "Classificação Final",
                     required=False
                 ),
-                "motivo_final": st.column_config.TextColumn(
+                "motivo_final": st.column_config.Column(
                     "Motivo Classificação Final",
                     required=False
                 ),
-                "confirmacao_classificacao_coordenacao": st.column_config.TextColumn(
+                "confirmacao_classificacao_coordenacao": st.column_config.Column(
                     "Coordenação Confirmou a Classificação?",
                     required=False
                 ),
-                "justificativa_classificacao_coord": st.column_config.TextColumn(
+                "justificativa_classificacao_coord": st.column_config.Column(
                     "Justificativa da Coordenação",
                     required=False
                 ),
-                "classificacao_automatica": st.column_config.TextColumn(
+                "classificacao_automatica": st.column_config.Column(
                     "Classificação Automatica",
                     required=False
                 ),
-                "motivo_classificao_automatica": st.column_config.TextColumn(
+                "motivo_classificao_automatica": st.column_config.Column(
                     "Motivo Classificação Automatica",
                     required=False
                 ),
-                "confirmacao_classificacao_orientadora": st.column_config.TextColumn(
+                "confirmacao_classificacao_orientadora": st.column_config.Column(
                     "Orientadora Confirmou a classificação Automatica?",
                     required=False
                 ),
-                "nova_classificacao_orientadora": st.column_config.TextColumn(
+                "nova_classificacao_orientadora": st.column_config.Column(
                     "Classificação da Orientadora",
                     required=False
                 ),
-                "novo_motivo_classificacao_orientadora": st.column_config.TextColumn(
+                "novo_motivo_classificacao_orientadora": st.column_config.Column(
                     "Motivo da Orientadora",
                     required=False
                 ),
-                "nova_justificativa_classificacao_orientadora": st.column_config.TextColumn(
+                "nova_justificativa_classificacao_orientadora": st.column_config.Column(
                     "Justificativa da Orientadora",
                     required=False
                 ),
-                "reversao": st.column_config.TextColumn(
+                "reversao": st.column_config.Column(
                     "Reversão",
                     required=False
                 ),
-                "descricao_caso": st.column_config.TextColumn(
+                "descricao_caso": st.column_config.Column(
                     "Descrição do Caso",
                     required=False
                 ),
-                "plano_intervencao": st.column_config.TextColumn(
+                "plano_intervencao": st.column_config.Column(
                     "Plano de Intervenção",
                     required=False
                 ),
-                "tier": st.column_config.TextColumn(
+                "tier": st.column_config.Column(
                     "Tier",
                     required=False
                 ),
-                "resposta_argumentacao": st.column_config.TextColumn(
+                "resposta_argumentacao": st.column_config.Column(
                     "Resposta - Nivel de Argumentação/Interações",
                     required=False
                 ),
-                "resposta_rotina_estudos": st.column_config.TextColumn(
+                "resposta_rotina_estudos": st.column_config.Column(
                     "Resposta - Rotina de Estudos Adequada?",
                     required=False
                 ),
-                "resposta_atividades_extracurriculares": st.column_config.TextColumn(
+                "resposta_atividades_extracurriculares": st.column_config.Column(
                     "Resposta - Atividades Extracurriculares",
                     required=False
                 ),
-                "resposta_faltas": st.column_config.TextColumn(
+                "resposta_faltas": st.column_config.Column(
                     "Resposta - Número de Faltas comprometentes?",
                     required=False
                 ),
-                "resposta_respeita_escola": st.column_config.TextColumn(
+                "resposta_respeita_escola": st.column_config.Column(
                     "Resposta - Respeita Normas Escolares?",
                     required=False
                 ),
-                "resposta_atividades_obrigatorias_ismart": st.column_config.TextColumn(
+                "resposta_atividades_obrigatorias_ismart": st.column_config.Column(
                     "Resposta - Participa das Atividades Obrigatórias?",
                     required=False
                 ),
-                "resposta_colaboracao": st.column_config.TextColumn(
+                "resposta_colaboracao": st.column_config.Column(
                     "Resposta - É Colaborativo Com Amigos?",
                     required=False
                 ),
-                "resposta_atividades_nao_obrigatorias_ismart": st.column_config.TextColumn(
+                "resposta_atividades_nao_obrigatorias_ismart": st.column_config.Column(
                     "Resposta - Participa das Atividades Não Obrigatórias?",
                     required=False
                 ),
-                "resposta_networking": st.column_config.TextColumn(
+                "resposta_networking": st.column_config.Column(
                     "Resposta - Cultiva Parcerias?",
                     required=False
                 ),
-                "resposta_proatividade": st.column_config.TextColumn(
+                "resposta_proatividade": st.column_config.Column(
                     "Resposta - É Proativo?",
                     required=False
                 ),
-                "resposta_questoes_psiquicas": st.column_config.TextColumn(
+                "resposta_questoes_psiquicas": st.column_config.Column(
                     "Resposta - Apresenta Questões Psíquicas de impacto?",
                     required=False
                 ),
-                "resposta_questoes_familiares": st.column_config.TextColumn(
+                "resposta_questoes_familiares": st.column_config.Column(
                     "Resposta - Apresenta Questões Familiares de impacto?",
                     required=False
                 ),
-                "resposta_questoes_saude": st.column_config.TextColumn(
+                "resposta_questoes_saude": st.column_config.Column(
                     "Resposta - Apresenta Questões Saúde de impacto?",
                     required=False
                 ),
-                "resposta_ideacao_suicida": st.column_config.TextColumn(
+                "resposta_ideacao_suicida": st.column_config.Column(
                     "Resposta - Apresenta Ideação Suicida?",
                     required=False
                 ),
-                "resposta_adaptacao_projeto": st.column_config.TextColumn(
+                "resposta_adaptacao_projeto": st.column_config.Column(
                     "Resposta - Se Adaptou ao Projeto?",
                     required=False
                 ),
-                "resposta_seguranca_profissional": st.column_config.TextColumn(
+                "resposta_seguranca_profissional": st.column_config.Column(
                     "Resposta - Tem Segurança Proficional?",
                     required=False
                 ),
-                "resposta_curso_apoiado": st.column_config.TextColumn(
+                "resposta_curso_apoiado": st.column_config.Column(
                     "Resposta - Deseja Curso Apoiado?",
                     required=False
                 ),
-                "resposta_nota_condizente": st.column_config.TextColumn(
+                "resposta_nota_condizente": st.column_config.Column(
                     "Resposta - Nota Condizente Com o Curso Desejado?",
                     required=False
                 ),
-                "Segmento": st.column_config.TextColumn(
+                "Segmento": st.column_config.Column(
                     "Segmento",
                     required=False
                 ),
@@ -906,8 +902,4 @@ else:
                             ]]                                                                                                   
             df_insert['data_submit'] = datetime.now(fuso_horario)
             df_insert = pd.concat([df, df_insert], ignore_index=True)
-            lista_ras = df_insert['RA']
-            lista_ras = lista_ras.to_list()
-            df_insert.drop_duplicates('RA')
-            registrar(df_insert, 'registro', 'RA', lista_ras)
-            
+            registrar(df_insert, 'registro', 'RA')

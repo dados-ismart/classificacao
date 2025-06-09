@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from time import sleep
+from io import BytesIO
+from xlsxwriter import Workbook
 
 @st.cache_resource(ttl=7200)
 def conn():
@@ -23,9 +25,7 @@ def ler_sheets(pagina, ttl=1):
             df = conn.read(worksheet=pagina, ttl=ttl)
             return df
         except:
-            sleep(3)
-            conn = st.connection("gsheets", type=GSheetsConnection)
-            pass
+            sleep(0.5)
     st.error('Erro ao conectar com o sheets')
     if st.button('Tentar novamente'):
         st.rerun()
@@ -38,13 +38,12 @@ def ler_sheets_cache(pagina):
             df = conn.read(worksheet=pagina)
             return df
         except:
-            sleep(3)
-            pass
-    st.error('Erro na leitura do sheets, tente novamente')
+            sleep(0.5)
+    st.error('Erro ao conectar com o sheets')
     if st.button('Tentar novamente'):
         st.rerun()
     st.stop()
-
+    
 def pontuar(resposta, lista):
     try:
         for index, elemento in enumerate(lista):
@@ -209,8 +208,8 @@ def classificar(media_calibrada, portugues, matematica, humanas, idiomas, cienci
     motivo = motivo[:-2]
     return classificacao, motivo
 
-def registrar(df_insert, aba, coluna_apoio, ra):
-    #Leitura do ta aba registro e checa se é nula
+def registrar(df_insert, aba, coluna_apoio, remover_registros_anteriores=True):
+    #Leitura da aba registro e checa se é nula
     for i in range(0, 2):
         df = ler_sheets(aba)
         if df.shape[0] == 0:
@@ -219,19 +218,17 @@ def registrar(df_insert, aba, coluna_apoio, ra):
         else: 
             break
 
-    #Limpar linhas repetidas
-    if type(ra) == list:
-        for i in ra:
-            ra_referencia = i
-            df = df[df['RA'] != i]
-    else:
-        df = df[df['RA'] != ra]
+    #Limpar linhas duplicadas (registros_anteriores)
+    if remover_registros_anteriores:
+        ra = df_insert['RA'].to_list()
+        if isinstance(ra, list) and ra: 
+            df = df[~df['RA'].isin(ra)]
 
     #REGISTRAR
     for a in range(1, 4):
         try:
             updared_df = pd.concat([df, df_insert], ignore_index=True)
-            conn.update(worksheet="registro", data=updared_df)
+            conn.update(worksheet=aba, data=updared_df)
             sleep(0.2)
             st.success('Sucesso!')
             sleep(0.5)
@@ -248,7 +245,7 @@ def registrar(df_insert, aba, coluna_apoio, ra):
                     sleep(1)
                     continue
             else:
-                if not df.query(f'RA == {ra_referencia} and {coluna_apoio} == {coluna_apoio}').empty:
+                if not df.query(f'RA == {ra[0]} and {coluna_apoio} == {coluna_apoio}').empty:
                     st.success('Sucesso!')
                     break
                 else:
@@ -257,6 +254,20 @@ def registrar(df_insert, aba, coluna_apoio, ra):
                     continue
     st.rerun()
 
+def esvazia_aba(aba):
+    for i in range(0, 4):
+        df = ler_sheets_cache(aba)
+
+        df_vazio = df.drop(df.index)
+        conn.update(worksheet=aba, data=df_vazio)
+        #Leitura da aba registro e checa se é nula
+        df = ler_sheets(aba)
+        if df.shape[0] == 0:
+            continue
+        else: 
+            st.cache_data.clear()
+            break
+        
 def retornar_indice(lista, variavel):
     if variavel == None:
         return None
@@ -267,3 +278,9 @@ def retornar_indice(lista, variavel):
     except:
         return None
 
+def to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Dados')
+    processed_data = output.getvalue()
+    return processed_data
