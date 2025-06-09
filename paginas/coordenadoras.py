@@ -10,10 +10,8 @@ email = st.experimental_user.email
 
 #importar e tratar datasets
 df = ler_sheets('registro')
-df['RA'] = df['RA'].astype(int)
 bd = ler_sheets_cache('bd')
 bd = bd.dropna(subset=['RA - NOME'])
-bd['RA'] = bd['RA'].astype(int)
 df_login = ler_sheets_cache('login')
 bd = bd.merge(df[['RA', 'confirmacao_classificacao_orientadora','conclusao_classificacao_final']], how='left', on='RA')
 bd = bd.sort_values(by=['conclusao_classificacao_final','confirmacao_classificacao_orientadora'], ascending = False)
@@ -102,139 +100,139 @@ with st.form(key='tabela_editavel_cord_confirmacao'):
                 options=['Sim', 'Não', '-'],
                 required=True
             ),
-            "RA": st.column_config.TextColumn(
+            "RA": st.column_config.Column(
                 "RA",
                 required=False
             ),
-            "nome": st.column_config.TextColumn(
+            "nome": st.column_config.Column(
                 "Nome",
                 required=False
             ),
-            "Orientadora": st.column_config.TextColumn(
+            "Orientadora": st.column_config.Column(
                 "Orientadora",
                 required=False
             ),
-            "classificacao_final": st.column_config.TextColumn(
+            "classificacao_final": st.column_config.Column(
                 "Classificação Final",
                 required=False
             ),
-            "motivo_final": st.column_config.TextColumn(
+            "motivo_final": st.column_config.Column(
                 "Motivo Classificação Final",
                 required=False
             ),
-            "classificacao_automatica": st.column_config.TextColumn(
+            "classificacao_automatica": st.column_config.Column(
                 "Classificação Automatica",
                 required=False
             ),
-            "motivo_classificao_automatica": st.column_config.TextColumn(
+            "motivo_classificao_automatica": st.column_config.Column(
                 "Motivo Classificação Automatica",
                 required=False
             ),
-            "confirmacao_classificacao_orientadora": st.column_config.TextColumn(
+            "confirmacao_classificacao_orientadora": st.column_config.Column(
                 "Orientadora Confirmou a classificação Automatica?",
                 required=False
             ),
-            "nova_classificacao_orientadora": st.column_config.TextColumn(
+            "nova_classificacao_orientadora": st.column_config.Column(
                 "Classificação da Orientadora",
                 required=False
             ),
-            "novo_motivo_classificacao_orientadora": st.column_config.TextColumn(
+            "novo_motivo_classificacao_orientadora": st.column_config.Column(
                 "Motivo da Orientadora",
                 required=False
             ),
-            "nova_justificativa_classificacao_orientadora": st.column_config.TextColumn(
+            "nova_justificativa_classificacao_orientadora": st.column_config.Column(
                 "Justificativa da Orientadora",
                 required=False
             ),
-            "reversao": st.column_config.TextColumn(
+            "reversao": st.column_config.Column(
                 "Reversão",
                 required=False
             ),
-            "descricao_caso": st.column_config.TextColumn(
+            "descricao_caso": st.column_config.Column(
                 "Descrição do Caso",
                 required=False
             ),
-            "plano_intervencao": st.column_config.TextColumn(
+            "plano_intervencao": st.column_config.Column(
                 "Plano de Intervenção",
                 required=False
             ),
-            "tier": st.column_config.TextColumn(
+            "tier": st.column_config.Column(
                 "Tier",
                 required=False
             ),
-            "resposta_argumentacao": st.column_config.TextColumn(
+            "resposta_argumentacao": st.column_config.Column(
                 "Resposta - Nivel de Argumentação/Interações",
                 required=False
             ),
-            "resposta_rotina_estudos": st.column_config.TextColumn(
+            "resposta_rotina_estudos": st.column_config.Column(
                 "Resposta - Rotina de Estudos Adequada?",
                 required=False
             ),
-            "resposta_atividades_extracurriculares": st.column_config.TextColumn(
+            "resposta_atividades_extracurriculares": st.column_config.Column(
                 "Resposta - Atividades Extracurriculares",
                 required=False
             ),
-            "resposta_faltas": st.column_config.TextColumn(
+            "resposta_faltas": st.column_config.Column(
                 "Resposta - Número de Faltas comprometentes?",
                 required=False
             ),
-            "resposta_respeita_escola": st.column_config.TextColumn(
+            "resposta_respeita_escola": st.column_config.Column(
                 "Resposta - Respeita Normas Escolares?",
                 required=False
             ),
-            "resposta_atividades_obrigatorias_ismart": st.column_config.TextColumn(
+            "resposta_atividades_obrigatorias_ismart": st.column_config.Column(
                 "Resposta - Participa das Atividades Obrigatórias?",
                 required=False
             ),
-            "resposta_colaboracao": st.column_config.TextColumn(
+            "resposta_colaboracao": st.column_config.Column(
                 "Resposta - É Colaborativo Com Amigos?",
                 required=False
             ),
-            "resposta_atividades_nao_obrigatorias_ismart": st.column_config.TextColumn(
+            "resposta_atividades_nao_obrigatorias_ismart": st.column_config.Column(
                 "Resposta - Participa das Atividades Não Obrigatórias?",
                 required=False
             ),
-            "resposta_networking": st.column_config.TextColumn(
+            "resposta_networking": st.column_config.Column(
                 "Resposta - Cultiva Parcerias?",
                 required=False
             ),
-            "resposta_proatividade": st.column_config.TextColumn(
+            "resposta_proatividade": st.column_config.Column(
                 "Resposta - É Proativo?",
                 required=False
             ),
-            "resposta_questoes_psiquicas": st.column_config.TextColumn(
+            "resposta_questoes_psiquicas": st.column_config.Column(
                 "Resposta - Apresenta Questões Psíquicas de impacto?",
                 required=False
             ),
-            "resposta_questoes_familiares": st.column_config.TextColumn(
+            "resposta_questoes_familiares": st.column_config.Column(
                 "Resposta - Apresenta Questões Familiares de impacto?",
                 required=False
             ),
-            "resposta_questoes_saude": st.column_config.TextColumn(
+            "resposta_questoes_saude": st.column_config.Column(
                 "Resposta - Apresenta Questões Saúde de impacto?",
                 required=False
             ),
-            "resposta_ideacao_suicida": st.column_config.TextColumn(
+            "resposta_ideacao_suicida": st.column_config.Column(
                 "Resposta - Apresenta Ideação Suicida?",
                 required=False
             ),
-            "resposta_adaptacao_projeto": st.column_config.TextColumn(
+            "resposta_adaptacao_projeto": st.column_config.Column(
                 "Resposta - Se Adaptou ao Projeto?",
                 required=False
             ),
-            "resposta_seguranca_profissional": st.column_config.TextColumn(
+            "resposta_seguranca_profissional": st.column_config.Column(
                 "Resposta - Tem Segurança Proficional?",
                 required=False
             ),
-            "resposta_curso_apoiado": st.column_config.TextColumn(
+            "resposta_curso_apoiado": st.column_config.Column(
                 "Resposta - Deseja Curso Apoiado?",
                 required=False
             ),
-            "resposta_nota_condizente": st.column_config.TextColumn(
+            "resposta_nota_condizente": st.column_config.Column(
                 "Resposta - Nota Condizente Com o Curso Desejado?",
                 required=False
             ),
-            "Segmento": st.column_config.TextColumn(
+            "Segmento": st.column_config.Column(
                 "Segmento",
                 required=False
             ),
@@ -322,9 +320,7 @@ if submit_button:
         ]]   
         
         df_tabela_editavel['data_submit'] = datetime.now(fuso_horario)
-        lista_ras = df_tabela_editavel['RA']
-        lista_ras = lista_ras.to_list()
-        registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final', lista_ras)
+        registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final')
 
 #Segunda Tabela - Edição dos Dados                 
 df_tabela_editavel = df[df['RA'].isin(bd_segmentado['RA'])]
@@ -375,19 +371,19 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 options=['Sim', 'Não', '-'],
                 required=True
             ),
-            "justificativa_classificacao_coord": st.column_config.Column(
+            "justificativa_classificacao_coord": st.column_config.TextColumn(
                 "Justificativa da Coordenadora",
                 required=False
             ),
-            "RA": st.column_config.TextColumn(
+            "RA": st.column_config.Column(
                 "RA",
                 required=False
             ),
-            "nome": st.column_config.TextColumn(
+            "nome": st.column_config.Column(
                 "Nome",
                 required=False
             ),
-            "Orientadora": st.column_config.TextColumn(
+            "Orientadora": st.column_config.Column(
                 "Orientadora",
                 required=False
             ),
@@ -396,33 +392,33 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 options=['Destaque', 'Pré-Destaque', 'Mediano', 'Atenção', 'Crítico', 'Crítico OP'],
                 required=False
             ),
-            "motivo_final": st.column_config.TextColumn(
+            "motivo_final": st.column_config.Column(
                 "Motivo Classificação Final",
                 help='Acadêmico; Perfil; Familiar; Saúde; Psicológico; Curso não apoiado; Curso concorrido; Escolha frágil',
                 required=False
             ),
-            "classificacao_automatica": st.column_config.TextColumn(
+            "classificacao_automatica": st.column_config.Column(
                 "Classificação Automatica",
                 required=False
             ),
-            "motivo_classificao_automatica": st.column_config.TextColumn(
+            "motivo_classificao_automatica": st.column_config.Column(
                 "Motivo Classificação Automatica",
                 required=False
             ),
-            "confirmacao_classificacao_orientadora": st.column_config.TextColumn(
+            "confirmacao_classificacao_orientadora": st.column_config.Column(
                 "Orientadora Confirmou a classificação Automatica?",
                 required=False
             ),
-            "nova_classificacao_orientadora": st.column_config.TextColumn(
+            "nova_classificacao_orientadora": st.column_config.Column(
                 "Classificação da Orientadora",
                 required=False
             ),
-            "novo_motivo_classificacao_orientadora": st.column_config.TextColumn(
+            "novo_motivo_classificacao_orientadora": st.column_config.Column(
                 "Motivo da Orientadora",
                 help='Acadêmico; Perfil; Familiar; Saúde; Psicológico; Curso não apoiado; Curso concorrido; Escolha frágil',
                 required=False
             ),
-            "nova_justificativa_classificacao_orientadora": st.column_config.TextColumn(
+            "nova_justificativa_classificacao_orientadora": st.column_config.Column(
                 "Justificativa da Orientadora",
                 required=False
             ),
@@ -444,79 +440,79 @@ with st.form(key='tabela_editavel_cord_edicao'):
                 help='2c; 2i; 3c; 3i; 4',
                 required=False
             ),
-            "resposta_argumentacao": st.column_config.TextColumn(
+            "resposta_argumentacao": st.column_config.Column(
                 "Resposta - Nivel de Argumentação/Interações",
                 required=False
             ),
-            "resposta_rotina_estudos": st.column_config.TextColumn(
+            "resposta_rotina_estudos": st.column_config.Column(
                 "Resposta - Rotina de Estudos Adequada?",
                 required=False
             ),
-            "resposta_atividades_extracurriculares": st.column_config.TextColumn(
+            "resposta_atividades_extracurriculares": st.column_config.Column(
                 "Resposta - Atividades Extracurriculares",
                 required=False
             ),
-            "resposta_faltas": st.column_config.TextColumn(
+            "resposta_faltas": st.column_config.Column(
                 "Resposta - Número de Faltas comprometentes?",
                 required=False
             ),
-            "resposta_respeita_escola": st.column_config.TextColumn(
+            "resposta_respeita_escola": st.column_config.Column(
                 "Resposta - Respeita Normas Escolares?",
                 required=False
             ),
-            "resposta_atividades_obrigatorias_ismart": st.column_config.TextColumn(
+            "resposta_atividades_obrigatorias_ismart": st.column_config.Column(
                 "Resposta - Participa das Atividades Obrigatórias?",
                 required=False
             ),
-            "resposta_colaboracao": st.column_config.TextColumn(
+            "resposta_colaboracao": st.column_config.Column(
                 "Resposta - É Colaborativo Com Amigos?",
                 required=False
             ),
-            "resposta_atividades_nao_obrigatorias_ismart": st.column_config.TextColumn(
+            "resposta_atividades_nao_obrigatorias_ismart": st.column_config.Column(
                 "Resposta - Participa das Atividades Não Obrigatórias?",
                 required=False
             ),
-            "resposta_networking": st.column_config.TextColumn(
+            "resposta_networking": st.column_config.Column(
                 "Resposta - Cultiva Parcerias?",
                 required=False
             ),
-            "resposta_proatividade": st.column_config.TextColumn(
+            "resposta_proatividade": st.column_config.Column(
                 "Resposta - É Proativo?",
                 required=False
             ),
-            "resposta_questoes_psiquicas": st.column_config.TextColumn(
+            "resposta_questoes_psiquicas": st.column_config.Column(
                 "Resposta - Apresenta Questões Psíquicas de impacto?",
                 required=False
             ),
-            "resposta_questoes_familiares": st.column_config.TextColumn(
+            "resposta_questoes_familiares": st.column_config.Column(
                 "Resposta - Apresenta Questões Familiares de impacto?",
                 required=False
             ),
-            "resposta_questoes_saude": st.column_config.TextColumn(
+            "resposta_questoes_saude": st.column_config.Column(
                 "Resposta - Apresenta Questões Saúde de impacto?",
                 required=False
             ),
-            "resposta_ideacao_suicida": st.column_config.TextColumn(
+            "resposta_ideacao_suicida": st.column_config.Column(
                 "Resposta - Apresenta Ideação Suicida?",
                 required=False
             ),
-            "resposta_adaptacao_projeto": st.column_config.TextColumn(
+            "resposta_adaptacao_projeto": st.column_config.Column(
                 "Resposta - Se Adaptou ao Projeto?",
                 required=False
             ),
-            "resposta_seguranca_profissional": st.column_config.TextColumn(
+            "resposta_seguranca_profissional": st.column_config.Column(
                 "Resposta - Tem Segurança Proficional?",
                 required=False
             ),
-            "resposta_curso_apoiado": st.column_config.TextColumn(
+            "resposta_curso_apoiado": st.column_config.Column(
                 "Resposta - Deseja Curso Apoiado?",
                 required=False
             ),
-            "resposta_nota_condizente": st.column_config.TextColumn(
+            "resposta_nota_condizente": st.column_config.Column(
                 "Resposta - Nota Condizente Com o Curso Desejado?",
                 required=False
             ),
-            "Segmento": st.column_config.TextColumn(
+            "Segmento": st.column_config.Column(
                 "Segmento",
                 required=False
             ),
@@ -597,8 +593,6 @@ if submit_button:
         df_tabela_editavel['data_submit'] = datetime.now(fuso_horario)
         df_tabela_editavel['confirmacao_classificacao_coordenacao'] = df_tabela_editavel['conclusao_classificacao_final']
         df_tabela_editavel['conclusao_classificacao_final'] = 'Sim'
-        lista_ras = df_tabela_editavel['RA']
-        lista_ras = lista_ras.to_list()
-        registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final', lista_ras)
+        registrar(df_tabela_editavel, 'registro', 'conclusao_classificacao_final')
     else:
         st.warning('Revise ao menos um aluno antes de registrar')
