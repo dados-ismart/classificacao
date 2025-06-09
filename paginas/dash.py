@@ -2,27 +2,14 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import pytz
-from paginas.funcoes import ler_sheets, ler_sheets_cache
-from io import BytesIO
-from xlsxwriter import Workbook
+from paginas.funcoes import ler_sheets, ler_sheets_cache, to_excel
 
-
-# Função para converter em Excel
-def to_excel(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Dados')
-    processed_data = output.getvalue()
-    return processed_data
 
 fuso_horario = pytz.timezone('America/Sao_Paulo')
 
 df = ler_sheets('registro')
-df['RA'] = df['RA'].astype(int)
-bd = ler_sheets('bd')
-bd['RA'] = bd['RA'].astype(int)
+bd = ler_sheets_cache('bd')
 df_historico = ler_sheets_cache('historico')
-df_historico['RA'] = df_historico['RA'].astype(int)
 
 
 #filtros
